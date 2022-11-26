@@ -5,9 +5,17 @@ import { oneDark } from '@codemirror/theme-one-dark'
 
 const code = ref()
 const extentions = [javascript({ typescript: true }), oneDark]
+
+async function saveTransformer() {
+  // todo: validate code before submit
+  await $fetch('/api/save-transformer', { 
+    body: { code }
+  })
+}
 </script>
 
 <template>
+  <button @click="saveTransformer">save</button>
   <Codemirror 
     v-model="code"
     placeholder="Transformer code goes here..."
