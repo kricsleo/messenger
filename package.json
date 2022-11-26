@@ -7,15 +7,19 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test": "vitest -u"
   },
   "devDependencies": {
-    "nuxt": "3.0.0"
+    "nuxt": "3.0.0",
+    "vitest": "^0.25.3"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.1.1",
     "@codemirror/theme-one-dark": "^6.1.0",
     "codemirror": "^6.0.1",
+    "typescript": "^4.9.3",
+    "unstorage": "^1.0.1",
     "vue-codemirror": "^6.1.1"
   }
 }
