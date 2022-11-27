@@ -1,11 +1,12 @@
 interface Messenger {
   id: string
-  code: string
-  target: string
+  exchanger: string
+  transpiledExchanger: string
+  address: string
 }
 
 interface RuntimeMessenger extends Messenger {
-  run: (...args: any) => any
+  runtime: (...args: any) => any
 }
 
 interface Result<T = any> {

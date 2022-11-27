@@ -1,24 +1,5 @@
 import { createStorage } from 'unstorage'
-import ts from 'typescript'
-
-// messenger persistent storage
-const messengerStorage = createStorage()
-
-export async function getMessenger(id: string) {
-  const messager: Messenger | null = await messengerStorage.getItem(id) as any
-  return messager
-}
-
-export async function saveMessenger(messenger: Messenger) {
-  return messengerStorage.setItem(messenger.id, messenger)
-}
-
-export async function hasMessenger(id: string) {
-  return messengerStorage.hasItem(id)
-}
-
-
-
+import { exchanger2Runtime } from '~~/utils/utils'
 
 // runtime messenger cache
 class RuntimeCache {
@@ -30,7 +11,10 @@ class RuntimeCache {
     return this.cache.get(id) ?? null
   }
   setItem(id: string, runtime: RuntimeMessenger) {
-    this.cache.set(id, runtime)
+    return this.cache.set(id, runtime)
+  }
+  removeItem(id: string) {
+    return this.cache.delete(id)
   }
   hasItem(id: string) {
     return this.cache.has(id)
@@ -41,10 +25,34 @@ class RuntimeCache {
 }
 export const runtimeStorage = new RuntimeCache()
 
-export async function getRuntime(id: string): Promise<RuntimeMessenger | null> {
+// messenger persistent storage
+const messengerStorage = createStorage()
+
+export async function getMessenger(id: string) {
+  const messager: Messenger | null = await messengerStorage.getItem(id) as any
+  return messager
+}
+
+export async function getAllMessengers() {
+  const keys = await messengerStorage.getKeys()
+  const messengers = await Promise.all(keys.map(key => messengerStorage.getItem(key)))
+  return messengers
+}
+
+export async function removeMessenger(id: string) {
+  return await messengerStorage.removeItem(id)
+}
+
+export async function saveMessenger(messenger: Messenger) {
+  await messengerStorage.setItem(messenger.id, messenger)
+  if(runtimeStorage.hasItem(messenger.id)) {
+    runtimeStorage.removeItem(messenger.id)
+  }
+}
+
+export async function getRuntimeMessenger(id: string): Promise<RuntimeMessenger | null> {
   if(runtimeStorage.hasItem(id)) {
     const runtimeMessenger = runtimeStorage.getItem(id) as RuntimeMessenger
-    console.log('runtimeMessenger', runtimeMessenger)
     return runtimeMessenger
   } else if(await messengerStorage.hasItem(id)) {
     const messenger = await messengerStorage.getItem(id) as Messenger
@@ -54,16 +62,18 @@ export async function getRuntime(id: string): Promise<RuntimeMessenger | null> {
   return null
 }
 
-export async function setRuntime(messenger: Messenger): Promise<RuntimeMessenger> {
-  const transpiled = ts.transpileModule(messenger.code, { 
-    compilerOptions: { module: ts.ModuleKind.ESNext } }
-  )
-  const base64Str = `data:text/javascript;base64,${Buffer.from(transpiled.outputText).toString('base64')}`
-  const module = await import(base64Str)
+export async function setRuntimeMessenger(messenger: Messenger): Promise<RuntimeMessenger> {
+  const runtime = await exchanger2Runtime(messenger.transpiledExchanger)
   const runtimeMessenger = { 
     ...messenger,
-    run: module.default,
+    runtime,
   }
   runtimeStorage.setItem(messenger.id, runtimeMessenger)
   return runtimeMessenger
+}
+
+export async function removeRuntimeMessenger(id: string) {
+  if(runtimeStorage.hasItem(id)) {
+    return runtimeStorage.removeItem(id)
+  }
 }

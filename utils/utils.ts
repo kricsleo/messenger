@@ -1,6 +1,7 @@
 import { transpile } from 'typescript'
 import fs from 'fs/promises'
 import { H3Event } from 'h3'
+import ts from 'typescript'
 
 /** Successful response */
 export function success<T = any>(data?: T): Result<T> {
@@ -53,4 +54,20 @@ export function answer(fn: (event: H3Event) => any) {
       return fail(e?.message || 'unknown error')
     }
   }
+}
+
+export function transpileExchanger(exchanger: string) {
+  const transpiled = ts.transpileModule(exchanger, { 
+    compilerOptions: { module: ts.ModuleKind.ESNext } }
+  )
+  return transpiled.outputText
+}
+
+export async function exchanger2Runtime(transpiledExchanger: string) {
+  const base64Str = `data:text/javascript;base64,${Buffer.from(transpiledExchanger).toString('base64')}`
+  const module = await import(base64Str)
+  if(!module.default) {
+    throw new Error('Missing default function')
+  }
+  return module.default
 }
