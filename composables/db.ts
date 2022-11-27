@@ -26,11 +26,30 @@ export async function hasMessenger(id: string) {
 
 
 // runtime messenger cache
-export const runtimeStorage = createStorage()
+class RuntimeCache {
+  cache: Map<string, RuntimeMessenger>
+  constructor() {
+    this.cache = new Map()
+  }
+  getItem(id: string) {
+    return this.cache.get(id) ?? null
+  }
+  setItem(id: string, runtime: RuntimeMessenger) {
+    this.cache.set(id, runtime)
+  }
+  hasItem(id: string) {
+    return this.cache.has(id)
+  }
+  getKeys() {
+    return this.cache.keys()
+  }
+}
+export const runtimeStorage = new RuntimeCache()
 
 export async function getRuntime(id: string): Promise<RuntimeMessenger | null> {
-  if(await runtimeStorage.hasItem(id)) {
-    const runtimeMessenger = await runtimeStorage.getItem(id) as RuntimeMessenger
+  if(runtimeStorage.hasItem(id)) {
+    const runtimeMessenger = runtimeStorage.getItem(id) as RuntimeMessenger
+    console.log('runtimeMessenger', runtimeMessenger)
     return runtimeMessenger
   } else if(await messengerStorage.hasItem(id)) {
     const messenger = await messengerStorage.getItem(id) as Messenger
