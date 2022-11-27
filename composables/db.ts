@@ -1,9 +1,4 @@
-import path from 'path'
-// todo: db
 import { createStorage } from 'unstorage'
-import { RUNTIME_CACHE_DIR } from '~~/constants/constants'
-import { isFileExists } from '~~/utils/utils'
-import fs from 'fs/promises'
 import ts from 'typescript'
 
 // messenger persistent storage
@@ -60,18 +55,14 @@ export async function getRuntime(id: string): Promise<RuntimeMessenger | null> {
 }
 
 export async function setRuntime(messenger: Messenger): Promise<RuntimeMessenger> {
-  const filepath = `${RUNTIME_CACHE_DIR}/${messenger.id}.js`
-  if(!isFileExists(RUNTIME_CACHE_DIR)) {
-    await fs.mkdir(RUNTIME_CACHE_DIR)
-  }
-  const content = ts.transpileModule(messenger.code, { compilerOptions: { module: 1 } })
-  await fs.writeFile(filepath, content.outputText)
-  const module = await import(filepath)
-  console.log('module', module);
-  
+  const transpiled = ts.transpileModule(messenger.code, { 
+    compilerOptions: { module: ts.ModuleKind.ESNext } }
+  )
+  const base64Str = `data:text/javascript;base64,${Buffer.from(transpiled.outputText).toString('base64')}`
+  const module = await import(base64Str)
   const runtimeMessenger = { 
     ...messenger,
-    run: module.default.default,
+    run: module.default,
   }
   runtimeStorage.setItem(messenger.id, runtimeMessenger)
   return runtimeMessenger
