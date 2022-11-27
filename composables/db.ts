@@ -56,7 +56,7 @@ export async function getRuntimeMessenger(id: string): Promise<RuntimeMessenger 
     return runtimeMessenger
   } else if(await messengerStorage.hasItem(id)) {
     const messenger = await messengerStorage.getItem(id) as Messenger
-    const runtimeMessenger = await setRuntime(messenger)
+    const runtimeMessenger = await setRuntimeMessenger(messenger)
     return runtimeMessenger
   }
   return null
