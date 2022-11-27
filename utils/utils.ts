@@ -1,8 +1,9 @@
 import { transpile } from 'typescript'
 import fs from 'fs/promises'
+import { H3Event } from 'h3'
 
 /** Successful response */
-export function success<T = any>(data: T): Result<T> {
+export function success<T = any>(data?: T): Result<T> {
   return {
     c: 0,
     d: data
@@ -28,4 +29,28 @@ export async function isFileExists(filepath: string) {
   return fs.access(filepath)
     .then(() => true)
     .catch(() => false)
+}
+
+export const debug = {
+  error: (...args: any) => console.error(`[${new Date().toLocaleString()}]:`, ...args),
+  warn: (...args: any) => console.warn(`[${new Date().toLocaleString()}]:`, ...args),
+  log: (...args: any) => console.log(`[${new Date().toLocaleString()}]:`, ...args),
+}
+
+export function answer(fn: (event: H3Event) => any) {
+  return async (event: H3Event) => {
+    setResponseHeaders(event, {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'PUT,POST,GET,DELETE,OPTIONS',
+      'access-control-allow-headers': 'Origin, Content-Type, Accept'
+    })
+    try {
+      const result = await fn(event);
+      debug.log('Server answerd', event.node.req.url);
+      return success(result);
+    } catch(e:any) {
+      debug.error('Server error', event.node.req.url, e);
+      return fail(e?.message || 'unknown error')
+    }
+  }
 }

@@ -1,6 +1,1 @@
-
-    const a = 4;
-    export default function (b: number) {
-     return a + b
-    }
-  
+export default function() {return  89 }

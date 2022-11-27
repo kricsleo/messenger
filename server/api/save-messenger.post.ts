@@ -1,8 +1,12 @@
+import { answer } from '~~/utils/utils'
+import { saveMessenger } from '~~/composables/db'
+
 /** Save Messenger */
-export default defineEventHandler(async event => {
+export default defineEventHandler(answer(async event => {
   const messenger: Messenger = await readBody(event)
   if(!messenger || !messenger.id || !messenger.code || !messenger.target) {
-    return fail('Invalid messenger')
+    throw new Error('Invalid messenger')
   }
-  return {body}
-})
+  await saveMessenger(messenger)
+  return 'Messenger saved'
+}))
