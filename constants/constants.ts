@@ -1,1 +1,1 @@
-export const RUNTIME_CACHE_DIR = '.messengers'
+export const RUNTIME_CACHE_DIR = '/tmp/.messengers'

@@ -60,10 +60,9 @@ export async function getRuntime(id: string): Promise<RuntimeMessenger | null> {
 }
 
 export async function setRuntime(messenger: Messenger): Promise<RuntimeMessenger> {
-  const dir = path.resolve(process.cwd(), RUNTIME_CACHE_DIR)
-  const filepath = `${dir}/${messenger.id}.js`
-  if(!isFileExists(dir)) {
-    await fs.mkdir(dir)
+  const filepath = `${RUNTIME_CACHE_DIR}/${messenger.id}.js`
+  if(!isFileExists(RUNTIME_CACHE_DIR)) {
+    await fs.mkdir(RUNTIME_CACHE_DIR)
   }
   const content = ts.transpileModule(messenger.code, { compilerOptions: { module: 1 } })
   await fs.writeFile(filepath, content.outputText)
