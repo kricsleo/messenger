@@ -11,8 +11,8 @@
     "test": "vitest -u"
   },
   "devDependencies": {
-    "vitest": "^0.25.3",
-    "h3": "^1.0.1"
+    "h3": "^1.0.1",
+    "vitest": "^0.25.3"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.1.1",
@@ -21,6 +21,7 @@
     "nuxt": "3.0.0",
     "typescript": "^4.9.3",
     "unstorage": "^1.0.1",
+    "vue": "^3.2.45",
     "vue-codemirror": "^6.1.1"
   }
 }
