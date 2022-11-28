@@ -13,6 +13,7 @@
   "devDependencies": {
     "@iconify-json/carbon": "^1.1.11",
     "@unocss/nuxt": "^0.46.5",
+    "@unocss/preset-rem-to-px": "^0.46.5",
     "@unocss/reset": "^0.46.5",
     "vitest": "^0.25.3"
   },
@@ -20,6 +21,7 @@
     "@codemirror/lang-javascript": "^6.1.1",
     "@codemirror/theme-one-dark": "^6.1.0",
     "codemirror": "^6.0.1",
+    "copy-to-clipboard": "^3.3.3",
     "h3": "^1.0.1",
     "nuxt": "3.0.0",
     "typescript": "^4.9.3",

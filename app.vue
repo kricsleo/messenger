@@ -5,7 +5,7 @@ import 'uno.css'
 </script>
 
 <template>
-  <div>
+  <div font-sans>
     <NuxtLayout>
       <NuxtPage/>
     </NuxtLayout>

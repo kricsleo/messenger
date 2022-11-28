@@ -4,6 +4,7 @@ import {
   presetIcons,
   presetUno,
 } from 'unocss'
+import presetRemToPx from '@unocss/preset-rem-to-px'
 
 export default defineConfig({
   presets: [
@@ -13,6 +14,7 @@ export default defineConfig({
       scale: 1.2,
       warn: true,
     }),
+    presetRemToPx({ baseFontSize: 4 }),
   ],
   shortcuts: [
     [/^border(.*)$/, ([, position]) => `border-gray-200/50 border${position}`],

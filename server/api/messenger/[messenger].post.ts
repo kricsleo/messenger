@@ -10,7 +10,9 @@ export default defineEventHandler(answer(async event => {
     throw new Error('Messenger not found')
   }
   const delivered = runtimeMessenger.runtime(body)
-  const reply = await $fetch(runtimeMessenger.address, { method: 'POST', body: delivered })
+  const reply = await $fetch(runtimeMessenger.address, { 
+    method: 'POST', body: delivered
+  })
   return {
     message: body,
     delivered,
