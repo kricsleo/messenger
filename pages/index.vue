@@ -4,8 +4,8 @@ import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import copyToClipboard from 'copy-to-clipboard';
 
-// const domain = 'https://messenger.kric.cc'
-const domain = 'http://localhost:3000'
+const domain = 'https://messenger.kric.cc'
+// const domain = 'http://localhost:3000'
 const extentions = [javascript({ typescript: true }), oneDark]
 const messengerPrefix = `${domain}/api/messenger/`
 const messengerId = ref()
