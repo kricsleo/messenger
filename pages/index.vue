@@ -15,10 +15,10 @@ async function saveTransformer() {
 </script>
 
 <template>
-  <button @click="saveTransformer">save</button>
+  <button text-red @click="saveTransformer">save</button>
   <Codemirror 
     v-model="code"
-    placeholder="Transformer code goes here..."
+    placeholder="Message exchange code goes here..."
     :style="{ height: '400px' }"
     :autofocus="true"
     :indent-with-tab="true"
