@@ -4,8 +4,10 @@ import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import copyToClipboard from 'copy-to-clipboard';
 
+// const domain = 'https://messenger.kric.cc'
+const domain = 'http://localhost:3000'
 const extentions = [javascript({ typescript: true }), oneDark]
-const messengerPrefix = 'https://messenger.kric.cc/api/messenger/'
+const messengerPrefix = `${domain}/api/messenger/`
 const messengerId = ref()
 const messengerUrl = computed(() => messengerPrefix + messengerId.value)
 const address = ref()
@@ -16,7 +18,7 @@ const messegeReply = ref()
 
 async function saveMessenger() {
   // todo: validate code before submit
-  await $fetch('https://messenger.kric.cc/api/save-messenger', {
+  await $fetch(`${domain}/api/save-messenger`, {
     method: 'POST',
     body: { 
       id: messengerId.value,
@@ -66,8 +68,9 @@ async function triggerTest() {
       <button class="btn" @click="saveMessenger">save</button>
     </div>
 
-    <div y-center>
-      <div grow-1 w-full>
+    <div border mt-20 />
+    <div y-center justify-between>
+      <div :style="{width: '44%'}" shrink-0>
         <div y-center flex-wrap my-10>
           <div class="title"> Test Data: </div>
           <span class="text-gray">(JSON format)</span>
@@ -82,14 +85,14 @@ async function triggerTest() {
         />
       </div>
 
-      <button class="btn" @click="triggerTest" shrink-0 mx-10>test =></button>
+      <button class="btn" @click="triggerTest" shrink-0>test =></button>
 
-      <div grow-1 w-full>
+      <div :style="{width: '44%'}" shrink-0>
         <div y-center flex-wrap my-10>
           <div class="title"> Reply: </div>
         </div>
         <Codemirror 
-          :model-value="messegeReply"
+          :model-value="JSON.stringify(messegeReply, null, 2)"
           placeholder="Test data reply goes here..."
           :style="{height: '400px'}"
           :indent-with-tab="true"
