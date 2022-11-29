@@ -18,11 +18,24 @@ const exchanger = ref()
 const testData = ref()
 const messegeReply = ref()
 
-const messengerList = ref<Messenger[]>()
+const messengerList = ref<Messenger[]>([])
 
-onMounted(() => {
+const templates = ref<Template[]>([])
+
+const templateImports = import.meta.glob('/composables/templates/*.ts', { as: 'raw' })
+
+onMounted(async () => {
   origin.value = window.location.origin
   loadMessengerList()
+
+  templates.value = await Promise.all(Object.entries(templateImports).map(async ([name, im]) => {
+    const exchanger = await im() as unknown as string
+    return {
+      id: name,
+      name,
+      exchanger
+    }
+  }))
 })
 
 async function saveMessenger() {
@@ -54,6 +67,10 @@ function showMessenger(messenger: Messenger) {
   messengerId.value = messenger.id
   address.value = messenger.address
   exchanger.value = messenger.exchanger
+}
+
+function useTemplate(template: Template) {
+  exchanger.value = template.exchanger
 }
 </script>
 
@@ -130,9 +147,30 @@ function showMessenger(messenger: Messenger) {
       <div 
         v-for="messengerItem in messengerList" 
         :key="messengerItem.id"
-        flex my-10 justify-between>
-        <span>{{messengerPrefix}}{{messengerItem.id}}</span>
-        <button class="btn btn--plain" @click="showMessenger(messengerItem)">Edit</button>
+        flex my-10 items-center>
+        <span>{{messengerPrefix + messengerItem.id}}</span>
+        <div i-carbon:copy @click="copyToClipboard(messengerPrefix + messengerItem.id)" cursor-pointer ml-10 title="copy path" />
+        <button class="ml-auto btn btn--plain" @click="showMessenger(messengerItem)">Edit</button>
+      </div>
+      <div text-gray v-if="!messengerList.length">
+        No messengers yet.
+      </div>
+    </div>
+
+    <div border mt-20 />
+    <div>
+      <div class="title" my-10> Templates: </div>
+      <div>
+        <div 
+          v-for="templateItem in templates"
+          :key="templateItem.id"
+          flex my-10>
+          <span>{{templateItem.name}}</span>
+          <button class="ml-auto btn btn--plain" @click="useTemplate(templateItem)">Use</button>
+        </div>
+        <div text-gray v-if="!templates.length">
+          No Templates yet.
+        </div>
       </div>
     </div>
 
