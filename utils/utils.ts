@@ -64,8 +64,8 @@ export function transpileExchanger(exchanger: string) {
 }
 
 export async function exchanger2Runtime(transpiledExchanger: string) {
-  const base64Str = `data:text/javascript;base64,${Buffer.from(transpiledExchanger).toString('base64')}`
-  const module = await import(base64Str)
+  const code = `data:text/javascript,${transpiledExchanger}`
+  const module = await import(code)
   if(!module.default) {
     throw new Error('Missing default function')
   }
