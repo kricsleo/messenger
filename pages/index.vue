@@ -51,6 +51,16 @@ async function saveMessenger() {
   loadMessengerList()
 }
 
+async function deleteMessenger(messenger: Messenger) {
+  await $fetch(`${origin.value}/api/delete-messenger`, {
+    method: 'DELETE',
+    body: {
+      id: messenger.id
+    }
+  })
+  loadMessengerList()
+}
+
 async function triggerTest() {
   messegeReply.value = await $fetch(messengerUrl.value, {
     method: 'POST',
@@ -150,7 +160,8 @@ function useTemplate(template: Template) {
         flex my-10 items-center>
         <span>{{messengerPrefix + messengerItem.id}}</span>
         <div i-carbon:copy @click="copyToClipboard(messengerPrefix + messengerItem.id)" cursor-pointer ml-10 title="copy path" />
-        <button class="ml-auto btn btn--plain" @click="showMessenger(messengerItem)">Edit</button>
+        <button class="ml-auto mr-10 btn btn--plain btn--danger" @click="deleteMessenger(messengerItem)">Delete</button>
+        <button class="btn btn--plain" @click="showMessenger(messengerItem)">Edit</button>
       </div>
       <div text-gray v-if="!messengerList.length">
         No messengers yet.
@@ -205,5 +216,8 @@ function useTemplate(template: Template) {
   color: #347d39;
   border-color: currentColor;
   background-color: transparent;
+}
+.btn--danger {
+  color: #e5534b;
 }
 </style>

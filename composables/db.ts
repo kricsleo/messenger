@@ -40,7 +40,8 @@ export async function getAllMessengers() {
 }
 
 export async function removeMessenger(id: string) {
-  return await messengerStorage.removeItem(id)
+  removeRuntimeMessenger(id)
+  await messengerStorage.removeItem(id)
 }
 
 export async function saveMessenger(messenger: Messenger) {
