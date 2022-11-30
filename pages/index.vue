@@ -1,14 +1,28 @@
 <script setup lang="ts">
 import { Codemirror } from 'vue-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
+import { javascript, esLint } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import copyToClipboard from 'copy-to-clipboard';
+import { lintGutter, linter } from "@codemirror/lint";
+// @ts-ignore
+import Linter from 'eslint4b-prebuilt/dist/eslint4b.es.js'
 
-const extentions = [javascript({ typescript: true }), oneDark]
+const extentions = [
+  javascript({ typescript: true }),
+  // dev mode in vite would overrite "process",
+  // that will brake the "Linter" in browser
+  process.dev ? null as any : linter(esLint(new Linter())),
+  lintGutter(),
+  oneDark
+].filter(Boolean)
+
+const jsonExtension = [
+  javascript(),
+  oneDark,
+]
 
 const origin = ref('~')
 
-// const origin = 'http://localhost:3000'
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
 const messengerId = ref()
 const messengerUrl = computed(() => messengerPrefix.value + messengerId.value)
@@ -21,7 +35,6 @@ const messegeReply = ref()
 const messengerList = ref<Messenger[]>([])
 
 const templates = ref<Template[]>([])
-
 const templateImports = import.meta.glob('/composables/templates/*.ts', { as: 'raw' })
 
 onMounted(async () => {
@@ -129,7 +142,7 @@ function useTemplate(template: Template) {
           :style="{height: '400px'}"
           :indent-with-tab="true"
           :tab-size="2"
-          :extensions="extentions"
+          :extensions="jsonExtension"
         />
       </div>
 
@@ -141,12 +154,12 @@ function useTemplate(template: Template) {
         </div>
         <Codemirror 
           :model-value="JSON.stringify(messegeReply, null, 2)"
-          placeholder="Test data reply goes here..."
+          placeholder="Test data replyed here"
+          disabled
           :style="{height: '400px'}"
           :indent-with-tab="true"
           :tab-size="2"
-          read-only
-          :extensions="extentions"
+          :extensions="jsonExtension"
         />
       </div>
     </div>
