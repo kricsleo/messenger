@@ -30,7 +30,7 @@ const address = ref()
 const exchanger = ref()
 
 const testData = ref()
-const messegeReply = ref()
+const messageReply = ref()
 
 const messengerList = ref<Messenger[]>([])
 
@@ -75,9 +75,13 @@ async function deleteMessenger(messenger: Messenger) {
 }
 
 async function triggerTest() {
-  messegeReply.value = await $fetch(messengerUrl.value, {
+  messageReply.value = await $fetch(`${origin.value}/api/test-messenger`, {
     method: 'POST',
-    body: JSON.parse(testData.value)
+    body: <MessengerWithmessage>{
+      address: address.value,
+      exchanger: exchanger.value,
+      message: JSON.parse(testData.value),
+    }
   })
 }
 
@@ -117,12 +121,13 @@ function useTemplate(template: Template) {
     </div>
     <Codemirror 
       v-model="exchanger"
-      placeholder="Message exchange code goes here..."
+      placeholder="message exchange code goes here..."
       :style="{height: '800px'}"
       :autofocus="true"
       :indent-with-tab="true"
       :tab-size="2"
       :extensions="extentions"
+      text-16
     />
 
     <div my-10 x-center>
@@ -143,6 +148,7 @@ function useTemplate(template: Template) {
           :indent-with-tab="true"
           :tab-size="2"
           :extensions="jsonExtension"
+          text-16
         />
       </div>
 
@@ -153,13 +159,14 @@ function useTemplate(template: Template) {
           <div class="title"> Reply: </div>
         </div>
         <Codemirror 
-          :model-value="JSON.stringify(messegeReply, null, 2)"
+          :model-value="JSON.stringify(messageReply, null, 2)"
           placeholder="Test data replyed here"
           disabled
           :style="{height: '400px'}"
           :indent-with-tab="true"
           :tab-size="2"
           :extensions="jsonExtension"
+          text-16
         />
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { getRuntimeMessenger } from '~~/composables/db'
-import { answer } from '~~/utils/utils'
+import { answer, exchangeMessage } from '~~/utils/utils'
 
 /** Call Messenger to deliver message */
 export default defineEventHandler(answer(async event => {
@@ -9,13 +9,6 @@ export default defineEventHandler(answer(async event => {
   if(!runtimeMessenger) {
     throw new Error('Messenger not found')
   }
-  const delivered = runtimeMessenger.runtime(body)
-  const reply = await $fetch(runtimeMessenger.address, { 
-    method: 'POST', body: delivered
-  })
-  return {
-    message: body,
-    delivered,
-    reply
-  }
+  const result  = await exchangeMessage(runtimeMessenger, body)
+  return result
 }))

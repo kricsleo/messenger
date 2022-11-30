@@ -53,6 +53,19 @@ export async function messenger2Runtime(messenger: Messenger) {
   }
 }
 
+export async function exchangeMessage(runtimeMessenger: RuntimeMessenger, message: Record<string, any>) {
+  const delivered = runtimeMessenger.runtime(message)
+  const reply = await $fetch(runtimeMessenger.address, { 
+    method: 'POST', 
+    body: delivered
+  })
+  return {
+    message,
+    delivered,
+    reply
+  }
+}
+
 export const debug = {
   error: (...args: any) => console.error(`[${new Date().toLocaleString()}]:`, ...args),
   warn: (...args: any) => console.warn(`[${new Date().toLocaleString()}]:`, ...args),

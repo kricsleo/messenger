@@ -9,6 +9,10 @@ interface RuntimeMessenger extends Messenger {
   runtime: (...args: any) => any
 }
 
+interface MessengerWithmessage extends Messenger {
+  message: Record<string, any>
+}
+
 interface Template {
   id: string
   name: string

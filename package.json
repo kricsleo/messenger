@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "NODE_OPTIONS='--experimental-vm-modules' nuxt dev",
     "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "preview": "NODE_OPTIONS='--experimental-vm-modules' nuxt preview",
     "postinstall": "nuxt prepare",
     "test": "vitest -u"
   },

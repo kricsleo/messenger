@@ -63,8 +63,8 @@ export async function removeRuntimeMessenger(id: string) {
 
 /** persistent storage operation */
 export async function getMessenger(id: string) {
-  const messager: Messenger | null = await messengerStorage.getItem(id) as any
-  return messager
+  const messeger: Messenger | null = await messengerStorage.getItem(id) as any
+  return messeger
 }
 
 export async function getAllMessengers() {
