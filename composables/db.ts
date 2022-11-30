@@ -1,7 +1,6 @@
 import { createStorage } from 'unstorage'
-import { exchanger2Runtime } from '~~/utils/utils'
+import { messenger2Runtime } from '~~/utils/utils'
 
-// runtime messenger cache
 class RuntimeCache {
   cache: Map<string, RuntimeMessenger>
   constructor() {
@@ -23,11 +22,46 @@ class RuntimeCache {
     return this.cache.keys()
   }
 }
-export const runtimeStorage = new RuntimeCache()
 
-// messenger persistent storage
+/** memory runtime storage */
+const runtimeStorage = new RuntimeCache()
+
+/** persistently messenger storage */
 const messengerStorage = createStorage()
 
+/** memory operation */
+export async function getRuntimeMessenger(id: string): Promise<RuntimeMessenger | null> {
+  if(runtimeStorage.hasItem(id)) {
+    const runtimeMessenger = runtimeStorage.getItem(id) as RuntimeMessenger
+    return runtimeMessenger
+  } else if(await messengerStorage.hasItem(id)) {
+    const messenger = await messengerStorage.getItem(id) as Messenger
+    const runtimeMessenger = await setRuntimeMessenger(messenger)
+    return runtimeMessenger
+  }
+  return null
+}
+
+export async function setRuntimeMessenger(messenger: Messenger): Promise<RuntimeMessenger> {
+  const { transpiled, runtime } = await messenger2Runtime(messenger)
+  const runtimeMessenger: RuntimeMessenger = { 
+    ...messenger,
+    transpiledExchanger: transpiled,
+    runtime,
+  }
+  // You can freeze this runtime when it's not used after a period to reclaim memory.
+  // I only do this when the memory is too small.
+  runtimeStorage.setItem(messenger.id, runtimeMessenger)
+  return runtimeMessenger
+}
+
+export async function removeRuntimeMessenger(id: string) {
+  if(runtimeStorage.hasItem(id)) {
+    return runtimeStorage.removeItem(id)
+  }
+}
+
+/** persistent storage operation */
 export async function getMessenger(id: string) {
   const messager: Messenger | null = await messengerStorage.getItem(id) as any
   return messager
@@ -48,33 +82,5 @@ export async function saveMessenger(messenger: Messenger) {
   await messengerStorage.setItem(messenger.id, messenger)
   if(runtimeStorage.hasItem(messenger.id)) {
     runtimeStorage.removeItem(messenger.id)
-  }
-}
-
-export async function getRuntimeMessenger(id: string): Promise<RuntimeMessenger | null> {
-  if(runtimeStorage.hasItem(id)) {
-    const runtimeMessenger = runtimeStorage.getItem(id) as RuntimeMessenger
-    return runtimeMessenger
-  } else if(await messengerStorage.hasItem(id)) {
-    const messenger = await messengerStorage.getItem(id) as Messenger
-    const runtimeMessenger = await setRuntimeMessenger(messenger)
-    return runtimeMessenger
-  }
-  return null
-}
-
-export async function setRuntimeMessenger(messenger: Messenger): Promise<RuntimeMessenger> {
-  const runtime = await exchanger2Runtime(messenger.transpiledExchanger)
-  const runtimeMessenger = { 
-    ...messenger,
-    runtime,
-  }
-  runtimeStorage.setItem(messenger.id, runtimeMessenger)
-  return runtimeMessenger
-}
-
-export async function removeRuntimeMessenger(id: string) {
-  if(runtimeStorage.hasItem(id)) {
-    return runtimeStorage.removeItem(id)
   }
 }

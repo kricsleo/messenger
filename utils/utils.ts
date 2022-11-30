@@ -1,7 +1,6 @@
-import { transpile } from 'typescript'
-import fs from 'fs/promises'
 import { H3Event } from 'h3'
 import ts from 'typescript'
+import vm from 'vm'
 
 /** Successful response */
 export function success<T = any>(data?: T): Result<T> {
@@ -19,17 +18,39 @@ export function fail(msg: string): Result<undefined> {
   }
 }
 
-/** Check if is valid js/ts code */
-export function checkMessengerCode(code: string) {
-  const result = transpile(code)
+export function transpileCode(code: string) {
+  const result = ts.transpile(code, { 
+    target: ts.ScriptTarget.ESNext
+  })
   return result
 }
 
-/** Check if file/path is exists */
-export async function isFileExists(filepath: string) {
-  return fs.access(filepath)
-    .then(() => true)
-    .catch(() => false)
+export async function code2Runtime(code: string) {
+  // running context
+  const context = vm.createContext({});
+  // @ts-expect-error experimental
+  const vmModule = new vm.SourceTextModule(code, { context })
+  await vmModule.link((specifier: string) => {
+    // for security:
+    // "import" is forbidden
+    // "require" is also undefined
+    throw new Error(`"import" is forbidden: you are importing "${specifier}"`)
+  });
+  await vmModule.evaluate()
+  return vmModule.namespace
+}
+
+export async function messenger2Runtime(messenger: Messenger) {
+  const transpiledCode = messenger.transpiledExchanger || transpileCode(messenger.exchanger)
+  const runtime = await code2Runtime(transpiledCode)
+  // only use default export
+  if(!runtime.default || typeof runtime.default !== 'function') {
+    throw new Error('You must export a "default" function')
+  }
+  return {
+    transpiled: transpiledCode,
+    runtime: runtime.default.bind(null) as (this: null, v: any) => any
+  }
 }
 
 export const debug = {
@@ -54,20 +75,4 @@ export function answer(fn: (event: H3Event) => any) {
       return fail(e?.message || 'unknown error')
     }
   }
-}
-
-export function transpileExchanger(exchanger: string) {
-  const transpiled = ts.transpileModule(exchanger, { 
-    compilerOptions: { module: ts.ModuleKind.ESNext } }
-  )
-  return transpiled.outputText
-}
-
-export async function exchanger2Runtime(transpiledExchanger: string) {
-  const code = `data:text/javascript,${transpiledExchanger}`
-  const module = await import(code)
-  if(!module.default) {
-    throw new Error('Missing default function')
-  }
-  return module.default
 }
