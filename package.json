@@ -5,6 +5,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "NODE_OPTIONS='--experimental-vm-modules' nuxt dev",
+    "start": "NODE_OPTIONS='--experimental-vm-modules' nuxt dev",
     "generate": "nuxt generate",
     "preview": "NODE_OPTIONS='--experimental-vm-modules' nuxt preview",
     "postinstall": "nuxt prepare",
@@ -15,6 +16,7 @@
     "@unocss/nuxt": "^0.46.5",
     "@unocss/preset-rem-to-px": "^0.46.5",
     "@unocss/reset": "^0.46.5",
+    "unplugin-element-plus": "^0.4.1",
     "vitest": "^0.25.3"
   },
   "dependencies": {
@@ -23,6 +25,7 @@
     "@codemirror/theme-one-dark": "^6.1.0",
     "codemirror": "^6.0.1",
     "copy-to-clipboard": "^3.3.3",
+    "element-plus": "^2.2.25",
     "eslint4b-prebuilt": "^6.7.2",
     "h3": "^1.0.1",
     "nuxt": "3.0.0",

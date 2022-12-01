@@ -6,6 +6,7 @@ import copyToClipboard from 'copy-to-clipboard';
 import { lintGutter, linter } from "@codemirror/lint";
 // @ts-ignore
 import Linter from 'eslint4b-prebuilt/dist/eslint4b.es.js'
+import { ElInput } from 'element-plus'
 
 const extentions = [
   javascript({ typescript: true }),
@@ -107,6 +108,7 @@ function useTemplate(template: Template) {
     <div y-center my-10 text-dark-1>
       <span class="title">Messenger: </span>
       {{messengerPrefix}}
+      <ElInput />
       <input class="input" v-model="messengerId" grow-1 ml-2 />
       <div i-carbon:copy @click="copyToClipboard(messengerUrl)" cursor-pointer ml-10 title="copy path" />
     </div>
