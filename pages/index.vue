@@ -6,7 +6,7 @@ import copyToClipboard from 'copy-to-clipboard';
 import { lintGutter, linter } from "@codemirror/lint";
 // @ts-ignore
 import Linter from 'eslint4b-prebuilt/dist/eslint4b.es.js'
-import { ElInput } from 'element-plus'
+import { ElButton, ElForm, ElFormItem, ElInput, ElMessage, FormInstance, FormRules, ElTooltip } from 'element-plus'
 
 const extentions = [
   javascript({ typescript: true }),
@@ -23,6 +23,20 @@ const jsonExtension = [
 ]
 
 const origin = ref('~')
+
+
+
+const formRef = ref<FormInstance>()
+const form = reactive({
+  id: '',
+  address: '',
+  exchanger: ''
+})
+const formRules: FormRules = {
+  id: { required: true, message: 'subpath is required'},
+  address: { required: true, message: 'address is required'},
+  exchanger: { required: true, message: 'exchanger is required'},
+}
 
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
 const messengerId = ref()
@@ -54,7 +68,7 @@ onMounted(async () => {
 })
 
 async function saveMessenger() {
-  // todo: validate code before submit
+  await formRef.value?.validate()
   await $fetch(`${origin.value}/api/save-messenger`, {
     method: 'POST',
     body: { 
@@ -63,6 +77,7 @@ async function saveMessenger() {
       exchanger: exchanger.value
     }
   })
+  ElMessage.success('Messenger saved!')
   loadMessengerList()
 }
 
@@ -101,11 +116,52 @@ function showMessenger(messenger: Messenger) {
 function useTemplate(template: Template) {
   exchanger.value = template.exchanger
 }
+
+function copy(text: string) {
+  copyToClipboard(text)
+  ElMessage.success('Copied!')
+}
 </script>
 
 <template>
   <section text-dark min-w-500 max-w-800 mx-auto my-10>
-    <div y-center my-10 text-dark-1>
+    <ElForm ref="formRef" :rules="formRules" :model="form" label-suffix=":" label-width="110px">
+      <ElFormItem prop="id" label="Messenger">
+        <div flex items-center w-full>
+          {{messengerPrefix}}&nbsp;
+          <ElInput class="grow-1" v-model="form.id" placeholder="please input subpath" />
+          <ElTooltip content="Copy href" placement="right-start">
+            <div i-carbon:copy @click="copy(messengerUrl)" cursor-pointer ml-10 shrink-0 active:text-gray />
+          </ElToolTip>
+        </div>
+      </ElFormItem>
+      <ElFormItem prop="exchanger" label="Exchanger(JS/TS)">
+        <div class="w-full">
+          <!-- <div text-gray>(Supports JS/TS)</div> -->
+          <Codemirror 
+            v-model="exchanger"
+            placeholder="message exchange code goes here..."
+            class="w-full"
+            :style="{height: '800px'}"
+            :autofocus="true"
+            :indent-with-tab="true"
+            :tab-size="2"
+            :extensions="extentions"
+            text-16
+          />
+        </div>
+      </ElFormItem>
+      <ElFormItem prop="address" label="Address">
+        <ElInput v-model="form.address" placeholder="please input href" />
+      </ElFormItem>
+      <ElFormItem>
+        <Button type="primary" :onClick="saveMessenger">Save Messenger</Button>
+      </ElFormItem>
+    </ElForm>
+  </section>
+
+  <section text-dark min-w-500 max-w-800 mx-auto my-10>
+    <!-- <div y-center my-10 text-dark-1>
       <span class="title">Messenger: </span>
       {{messengerPrefix}}
       <ElInput />
@@ -135,7 +191,7 @@ function useTemplate(template: Template) {
 
     <div my-10 x-center>
       <button class="btn" @click="saveMessenger">Save</button>
-    </div>
+    </div> -->
 
     <div border mt-20 />
     <div y-center justify-between>
