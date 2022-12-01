@@ -7,7 +7,12 @@ export default defineEventHandler(answer(async event => {
   if(!messenger || !messenger.id || !messenger.exchanger || !messenger.address) {
     throw new Error('Missing required info for a messenger')
   }
-  const { transpiled } = await messenger2Runtime(messenger)
+  let transpiled
+  try {
+    transpiled = (await messenger2Runtime(messenger)).transpiled
+  } catch(e: any) {
+    throw new Error(`Error in "exchanger code": ${e.message}`)
+  }
   messenger.transpiledExchanger = transpiled
   // save to persistent storage
   await saveMessenger(messenger)

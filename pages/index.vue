@@ -33,14 +33,17 @@ const form = reactive({
   exchanger: ''
 })
 const formRules: FormRules = {
+  // validate id
   id: { required: true, message: 'subpath is required'},
+  // validate address
   address: { required: true, message: 'address is required'},
+  // validate default export
   exchanger: { required: true, message: 'exchanger is required'},
 }
 
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
 const messengerId = ref()
-const messengerUrl = computed(() => messengerPrefix.value + messengerId.value)
+const messengerUrl = computed(() => messengerPrefix.value + form.id)
 const address = ref()
 const exchanger = ref()
 
@@ -71,10 +74,10 @@ async function saveMessenger() {
   await formRef.value?.validate()
   await $fetch(`${origin.value}/api/save-messenger`, {
     method: 'POST',
-    body: { 
-      id: messengerId.value,
-      address: address.value,
-      exchanger: exchanger.value
+    body: {
+      id: form.id.trim(),
+      exchanger: form.exchanger,
+      address: form.address.trim(),
     }
   })
   ElMessage.success('Messenger saved!')
@@ -139,10 +142,10 @@ function copy(text: string) {
         <div class="w-full">
           <!-- <div text-gray>(Supports JS/TS)</div> -->
           <Codemirror 
-            v-model="exchanger"
+            v-model="form.exchanger"
             placeholder="message exchange code goes here..."
             class="w-full"
-            :style="{height: '800px'}"
+            :style="{height: '600px'}"
             :autofocus="true"
             :indent-with-tab="true"
             :tab-size="2"
