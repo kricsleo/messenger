@@ -35,17 +35,18 @@ const messageReply = ref()
 const messengerList = ref<Messenger[]>([])
 
 const templates = ref<Template[]>([])
-const templateImports = import.meta.glob('/composables/templates/*.ts', { as: 'raw' })
+const templateImports = import.meta.glob('/templates/*.ts', { as: 'raw' })
 
 onMounted(async () => {
   origin.value = window.location.origin
   loadMessengerList()
 
-  templates.value = await Promise.all(Object.entries(templateImports).map(async ([name, im]) => {
+  templates.value = await Promise.all(Object.entries(templateImports).map(async ([filename, im]) => {
     const exchanger = await im() as unknown as string
+    const templateName = filename.split('/').pop()?.slice(0, -3) || 'unknown template'
     return {
-      id: name,
-      name,
+      id: templateName,
+      name: templateName,
       exchanger
     }
   }))
