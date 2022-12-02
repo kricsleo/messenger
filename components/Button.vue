@@ -18,7 +18,7 @@ async function handleClick() {
 </script>
 
 <template>
-  <ElButton v-bind="attrs" @click="handleClick">
+  <ElButton v-bind="attrs" :loading="loading" @click="handleClick">
     <slot />
   </ElButton>
 </template>

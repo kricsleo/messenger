@@ -16,7 +16,7 @@ export default defineNuxtConfig({
         { rel: 'icon', href: '/favico.svg' }
       ],
     }
-  },  // build
+  },
   build: {
     transpile: ['element-plus/es'],
   },

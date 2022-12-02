@@ -127,115 +127,89 @@ function copy(text: string) {
 </script>
 
 <template>
-  <section text-dark min-w-500 max-w-800 mx-auto my-10>
-    <ElForm ref="formRef" :rules="formRules" :model="form" label-suffix=":" label-width="110px">
-      <ElFormItem prop="id" label="Messenger">
-        <div flex items-center w-full>
-          {{messengerPrefix}}&nbsp;
-          <ElInput class="grow-1" v-model="form.id" placeholder="please input subpath" />
-          <ElTooltip content="Copy href" placement="right-start">
-            <div i-carbon:copy @click="copy(messengerUrl)" cursor-pointer ml-10 shrink-0 active:text-gray />
-          </ElToolTip>
-        </div>
-      </ElFormItem>
-      <ElFormItem prop="exchanger" label="Exchanger(JS/TS)">
-        <div class="w-full">
-          <!-- <div text-gray>(Supports JS/TS)</div> -->
+  <section text-dark max-w-800 mx-auto py20 space-y-30>
+
+    <!-- edidor -->
+    <section border rounded-4>
+      <h2 border-b py10 text="bold 20 center">Messenger Editor</h2>
+      <ElForm 
+        ref="formRef" 
+        :rules="formRules" 
+        :model="form" 
+        label-suffix=":" 
+        label-width="130px"
+        class="p20 pb0">
+        <ElFormItem prop="id" label="Messenger">
+          <div flex items-center w-full>
+            {{messengerPrefix}}&nbsp;
+            <ElInput class="grow-1" v-model="form.id" placeholder="please input subpath" />
+            <ElTooltip content="Copy href" placement="right-start">
+              <div i-carbon:copy @click="copy(messengerUrl)" cursor-pointer ml-10 shrink-0 active:text-gray />
+            </ElToolTip>
+          </div>
+        </ElFormItem>
+        <ElFormItem prop="exchanger" label="Exchanger(JS/TS)">
           <Codemirror 
             v-model="form.exchanger"
             placeholder="message exchange code goes here..."
-            class="w-full"
-            :style="{height: '600px'}"
+            :style="{height: '600px', width: '100%'}"
             :autofocus="true"
             :indent-with-tab="true"
             :tab-size="2"
             :extensions="extentions"
             text-16
           />
+        </ElFormItem>
+        <ElFormItem prop="address" label="Address">
+          <ElInput v-model="form.address" placeholder="please input href" />
+        </ElFormItem>
+        <ElFormItem>
+          <Button type="primary" :onClick="saveMessenger">Save Messenger</Button>
+        </ElFormItem>
+      </ElForm>
+    </section>
+
+    <!-- playground -->
+    <section border rounded-4>
+      <h2 relative border-b py10 text="bold 20 center">
+        Messenger Playground
+        <Button class="absolute right-10 float-right" type="primary" plain :onClick="triggerTest">Run Test</Button>
+      </h2>
+      <div flex justify-between px20>
+        <div :style="{width: '49%'}" shrink-0>
+          <div text-16 py10> 
+            Test Data: 
+            <span class="text-gray">(JSON format)</span>
+          </div>
+          <Codemirror 
+            v-model="testData"
+            placeholder="Test data goes here..."
+            :style="{height: '400px'}"
+            :indent-with-tab="true"
+            :tab-size="2"
+            :extensions="jsonExtension"
+            text-16
+          />
         </div>
-      </ElFormItem>
-      <ElFormItem prop="address" label="Address">
-        <ElInput v-model="form.address" placeholder="please input href" />
-      </ElFormItem>
-      <ElFormItem>
-        <Button type="primary" :onClick="saveMessenger">Save Messenger</Button>
-      </ElFormItem>
-    </ElForm>
-  </section>
-
-  <section text-dark min-w-500 max-w-800 mx-auto my-10>
-    <!-- <div y-center my-10 text-dark-1>
-      <span class="title">Messenger: </span>
-      {{messengerPrefix}}
-      <ElInput />
-      <input class="input" v-model="messengerId" grow-1 ml-2 />
-      <div i-carbon:copy @click="copyToClipboard(messengerUrl)" cursor-pointer ml-10 title="copy path" />
-    </div>
-
-    <div y-center my-10>
-      <span class="title">Address: </span>
-      <input class="input" v-model="address" grow-1 />
-    </div>
-
-    <div y-center flex-wrap my-10>
-      <div class="title"> Echanger: </div>
-      <span class="text-gray">(support js/ts)</span>
-    </div>
-    <Codemirror 
-      v-model="exchanger"
-      placeholder="message exchange code goes here..."
-      :style="{height: '800px'}"
-      :autofocus="true"
-      :indent-with-tab="true"
-      :tab-size="2"
-      :extensions="extentions"
-      text-16
-    />
-
-    <div my-10 x-center>
-      <button class="btn" @click="saveMessenger">Save</button>
-    </div> -->
-
-    <div border mt-20 />
-    <div y-center justify-between>
-      <div :style="{width: '44%'}" shrink-0>
-        <div y-center flex-wrap my-10>
-          <div class="title"> Test Data: </div>
-          <span class="text-gray">(JSON format)</span>
+        <div :style="{width: '49%'}" shrink-0>
+          <div text-16 py10> Reply: </div>
+          <Codemirror 
+            :model-value="JSON.stringify(messageReply, null, 2)"
+            placeholder="Test data replyed here"
+            disabled
+            :style="{height: '400px'}"
+            :indent-with-tab="true"
+            :tab-size="2"
+            :extensions="jsonExtension"
+            text-16
+          />
         </div>
-        <Codemirror 
-          v-model="testData"
-          placeholder="Test data goes here..."
-          :style="{height: '400px'}"
-          :indent-with-tab="true"
-          :tab-size="2"
-          :extensions="jsonExtension"
-          text-16
-        />
       </div>
+    </section>
 
-      <button class="btn btn--plain" @click="triggerTest" shrink-0>Test =></button>
-
-      <div :style="{width: '44%'}" shrink-0>
-        <div y-center flex-wrap my-10>
-          <div class="title"> Reply: </div>
-        </div>
-        <Codemirror 
-          :model-value="JSON.stringify(messageReply, null, 2)"
-          placeholder="Test data replyed here"
-          disabled
-          :style="{height: '400px'}"
-          :indent-with-tab="true"
-          :tab-size="2"
-          :extensions="jsonExtension"
-          text-16
-        />
-      </div>
-    </div>
-
-    <div border mt-20 />
-    <div>
-      <div class="title" my-10> Messengers: </div>
+    <!-- messenger list -->
+    <section border rounded-4>
+      <h2 border-b py10 text="bold 20 center"> Messengers </h2>
       <div 
         v-for="messengerItem in messengerList" 
         :key="messengerItem.id"
@@ -245,37 +219,30 @@ function copy(text: string) {
         <button class="ml-auto mr-10 btn btn--plain btn--danger" @click="deleteMessenger(messengerItem)">Delete</button>
         <button class="btn btn--plain" @click="showMessenger(messengerItem)">Edit</button>
       </div>
-      <div text-gray v-if="!messengerList.length">
+      <div text-gray text-center my20 v-if="!messengerList.length">
         No messengers yet.
       </div>
-    </div>
+    </section>
 
-    <div border mt-20 />
-    <div>
-      <div class="title" my-10> Templates: </div>
-      <div>
-        <div 
-          v-for="templateItem in templates"
-          :key="templateItem.id"
-          flex my-10>
-          <span>{{templateItem.name}}</span>
-          <button class="ml-auto btn btn--plain" @click="useTemplate(templateItem)">Use</button>
-        </div>
-        <div text-gray v-if="!templates.length">
-          No Templates yet.
-        </div>
+    <!-- templates -->
+    <section border rounded-4>
+      <h2 border-b py10 text="bold 20 center"> Templates </h2>
+      <div 
+        v-for="templateItem in templates"
+        :key="templateItem.id"
+        flex my-10>
+        <span>{{templateItem.name}}</span>
+        <button class="ml-auto btn btn--plain" @click="useTemplate(templateItem)">Use</button>
       </div>
-    </div>
+      <div text-gray text-center my20 v-if="!templates.length">
+        No Templates yet.
+      </div>
+    </section>
 
   </section>
 </template>
 
 <style scope>
-.title {
-  width: 100px;
-  font-weight: 700;
-  font-size: 16px;
-}
 .input {
   border: 1px solid #444c56;
   padding: 2px 5px;
