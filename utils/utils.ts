@@ -1,3 +1,4 @@
+import { ElMessage } from 'element-plus'
 import { H3Event } from 'h3'
 import ts from 'typescript'
 import vm from 'vm'
@@ -82,10 +83,34 @@ export function answer(fn: (event: H3Event) => any) {
     try {
       const result = await fn(event);
       debug.log('Server answerd', event.node.req.url);
-      return success(result);
+      return success(result) as any;
     } catch(e:any) {
       debug.error('Server error', event.node.req.url, e);
       return fail(e?.message || 'unknown error')
     }
   }
+}
+
+export const myFetch = $fetch.create({
+  onRequestError({ error }) {
+    ElMessage.error(error.message) 
+  },
+  async onResponse({ response }) {
+    const data = response._data
+    if(data?.c !== 0) {
+      ElMessage.error(data?.m || 'Unknown error')  
+      return Promise.reject(response)
+    }
+    response._data = data.d
+  },
+  onResponseError({ error }) {
+    ElMessage.error(error?.message || 'Unknown error')
+  },
+})
+
+export function isValidHref(href: string) {
+  const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
+  console.log(urlPattern.test(href), href);
+  
+  return urlPattern.test(href)
 }

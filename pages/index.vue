@@ -6,7 +6,7 @@ import copyToClipboard from 'copy-to-clipboard';
 import { lintGutter, linter } from "@codemirror/lint";
 // @ts-ignore
 import Linter from 'eslint4b-prebuilt/dist/eslint4b.es.js'
-import { ElButton, ElForm, ElFormItem, ElInput, ElMessage, FormInstance, FormRules, ElTooltip } from 'element-plus'
+import { ElButton, ElForm, ElFormItem, ElInput, ElMessage, FormInstance, FormRules, ElTooltip, ElTable, ElTableColumn } from 'element-plus'
 
 const extentions = [
   javascript({ typescript: true }),
@@ -25,25 +25,33 @@ const jsonExtension = [
 const origin = ref('~')
 
 
-
 const formRef = ref<FormInstance>()
 const form = reactive({
-  id: '',
+  name: '',
   address: '',
   exchanger: ''
 })
 const formRules: FormRules = {
-  // validate id
-  id: { required: true, message: 'subpath is required'},
-  // validate address
-  address: { required: true, message: 'address is required'},
-  // validate default export
+  name: { trigger: 'change', required: true, message: 'name is required' },
+  address: {
+    required: true, 
+    trigger: 'change',
+    validator(_rule, value, cb) {
+      if(!value) {
+        cb(new Error('address is required'))
+      } else if(!isValidHref(value)) {
+        cb(new Error('this address is not a valid href'))
+      } else {
+        cb()
+      }
+    }
+},
   exchanger: { required: true, message: 'exchanger is required'},
 }
 
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
 const messengerId = ref()
-const messengerUrl = computed(() => messengerPrefix.value + form.id)
+const messengerUrl = computed(() => getMessengerHref(messengerId.value))
 const address = ref()
 const exchanger = ref()
 
@@ -59,6 +67,10 @@ onMounted(async () => {
   origin.value = window.location.origin
   loadMessengerList()
 
+  // init random messenger id
+  myFetch('/api/get-messenger-id')
+    .then(result => messengerId.value = result.id)
+
   templates.value = await Promise.all(Object.entries(templateImports).map(async ([filename, im]) => {
     const exchanger = await im() as unknown as string
     const templateName = filename.split('/').pop()?.slice(0, -3) || 'unknown template'
@@ -72,10 +84,10 @@ onMounted(async () => {
 
 async function saveMessenger() {
   await formRef.value?.validate()
-  await $fetch(`${origin.value}/api/save-messenger`, {
+  await myFetch(`${origin.value}/api/save-messenger`, {
     method: 'POST',
     body: {
-      id: form.id.trim(),
+      id: messengerId.value,
       exchanger: form.exchanger,
       address: form.address.trim(),
     }
@@ -85,7 +97,7 @@ async function saveMessenger() {
 }
 
 async function deleteMessenger(messenger: Messenger) {
-  await $fetch(`${origin.value}/api/delete-messenger`, {
+  await myFetch(`${origin.value}/api/delete-messenger`, {
     method: 'DELETE',
     body: {
       id: messenger.id
@@ -95,19 +107,26 @@ async function deleteMessenger(messenger: Messenger) {
 }
 
 async function triggerTest() {
-  messageReply.value = await $fetch(`${origin.value}/api/test-messenger`, {
+  let message
+  try {
+    message = JSON.parse(testData.value)
+  } catch(e) {
+    ElMessage.error('Test data is not a valid json')
+    return
+  }
+  messageReply.value = await myFetch(`${origin.value}/api/test-messenger`, {
     method: 'POST',
     body: <MessengerWithmessage>{
-      address: address.value,
-      exchanger: exchanger.value,
-      message: JSON.parse(testData.value),
+      address: form.address,
+      exchanger: form.exchanger,
+      message: message,
     }
   })
 }
 
 async function loadMessengerList() {
-  const result: any = await $fetch(`${origin.value}/api/get-all-messengers`)
-  messengerList.value = result.d.messengers
+  const result: any = await myFetch(`${origin.value}/api/get-all-messengers`)
+  messengerList.value = result.messengers
 }
 
 function showMessenger(messenger: Messenger) {
@@ -123,6 +142,18 @@ function useTemplate(template: Template) {
 function copy(text: string) {
   copyToClipboard(text)
   ElMessage.success('Copied!')
+}
+
+function forkMessenger(messenger: Messenger) {
+  form.address = messenger.address
+  form.exchanger = messenger.exchanger
+}
+
+function getMessengerHref(messengerId: string) {
+  return messengerPrefix.value + messengerId
+}
+function formatName(_r: any, _c: any, v: string | undefined) {
+  return v || '-'
 }
 </script>
 
@@ -140,13 +171,15 @@ function copy(text: string) {
         label-width="130px"
         class="p20 pb0">
         <ElFormItem prop="id" label="Messenger">
-          <div flex items-center w-full>
-            {{messengerPrefix}}&nbsp;
-            <ElInput class="grow-1" v-model="form.id" placeholder="please input subpath" />
+          {{messengerPrefix}}{{messengerId}}
+          <ClientOnly>
             <ElTooltip content="Copy href" placement="right-start">
               <div i-carbon:copy @click="copy(messengerUrl)" cursor-pointer ml-10 shrink-0 active:text-gray />
             </ElToolTip>
-          </div>
+          </ClientOnly>
+        </ElFormItem>
+        <ElFormItem prop="name" label="Name">
+          <ElInput v-model="form.name" placeholder="please input messenger name" maxlength="100" />
         </ElFormItem>
         <ElFormItem prop="exchanger" label="Exchanger(JS/TS)">
           <Codemirror 
@@ -175,7 +208,7 @@ function copy(text: string) {
         Messenger Playground
         <Button class="absolute right-10 float-right" type="primary" plain :onClick="triggerTest">Run Test</Button>
       </h2>
-      <div flex justify-between px20>
+      <div flex justify-between px20 pb-20>
         <div :style="{width: '49%'}" shrink-0>
           <div text-16 py10> 
             Test Data: 
@@ -208,20 +241,24 @@ function copy(text: string) {
     </section>
 
     <!-- messenger list -->
-    <section border rounded-4>
+    <section border border-b-none rounded-4 overflow-hidden>
       <h2 border-b py10 text="bold 20 center"> Messengers </h2>
-      <div 
-        v-for="messengerItem in messengerList" 
-        :key="messengerItem.id"
-        flex my-10 items-center>
-        <span>{{messengerPrefix + messengerItem.id}}</span>
-        <div i-carbon:copy @click="copyToClipboard(messengerPrefix + messengerItem.id)" cursor-pointer ml-10 title="copy path" />
-        <button class="ml-auto mr-10 btn btn--plain btn--danger" @click="deleteMessenger(messengerItem)">Delete</button>
-        <button class="btn btn--plain" @click="showMessenger(messengerItem)">Edit</button>
-      </div>
-      <div text-gray text-center my20 v-if="!messengerList.length">
-        No messengers yet.
-      </div>
+      <ElTable :show-header="false" :data="messengerList" empty-text="No messengers yet.">
+        <ElTableColumn prop="id" :formatter="(row: Messenger) => getMessengerHref(row.id)" />
+        <ElTableColumn prop="name" show-overflow-tooltip :formatter="formatName" />
+        <ElTableColumn width="200px">
+          <template #default="scope">
+            <div text-right>
+              <ElButton @click="copyToClipboard(getMessengerHref(scope.row.id))">
+                <div i-carbon:copy />
+              </ElButton>
+              <ElButton @click="forkMessenger(scope.row)">fork</ElButton>
+              <!-- hide delete -->
+              <!-- <button class="ml-auto mr-10 btn btn--plain btn--danger" @click="deleteMessenger(messengerItem)">Delete</button> -->
+            </div>
+          </template>
+        </ElTableColumn>
+      </ElTable>
     </section>
 
     <!-- templates -->

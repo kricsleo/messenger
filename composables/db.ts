@@ -1,5 +1,6 @@
 import { createStorage } from 'unstorage'
 import { messenger2Runtime } from '~~/utils/utils'
+import { nanoid } from 'nanoid'
 
 class RuntimeCache {
   cache: Map<string, RuntimeMessenger>
@@ -82,5 +83,16 @@ export async function saveMessenger(messenger: Messenger) {
   await messengerStorage.setItem(messenger.id, messenger)
   if(runtimeStorage.hasItem(messenger.id)) {
     runtimeStorage.removeItem(messenger.id)
+  }
+}
+
+export async function createMessengerId(): Promise<string> {
+  const ID_LENGTH = 4
+  const id = nanoid(ID_LENGTH)
+  // if this id already existed, loop to find an avaliable one
+  if(!(await messengerStorage.hasItem(id))) {
+    return id
+  } else {
+    return createMessengerId()
   }
 }
