@@ -2,6 +2,7 @@ import { ElMessage } from 'element-plus'
 import { H3Event } from 'h3'
 import ts from 'typescript'
 import vm from 'vm'
+import { customAlphabet } from 'nanoid'
 
 /** Successful response */
 export function success<T = any>(data?: T): Result<T> {
@@ -110,7 +111,7 @@ export const myFetch = $fetch.create({
 
 export function isValidHref(href: string) {
   const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
-  console.log(urlPattern.test(href), href);
-  
   return urlPattern.test(href)
 }
+
+export const myNanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 6)

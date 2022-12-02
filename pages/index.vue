@@ -27,6 +27,7 @@ const origin = ref('~')
 
 const formRef = ref<FormInstance>()
 const form = reactive({
+  id: '',
   name: '',
   address: '',
   exchanger: ''
@@ -50,16 +51,9 @@ const formRules: FormRules = {
 }
 
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
-const messengerId = ref()
-const messengerUrl = computed(() => getMessengerHref(messengerId.value))
-const address = ref()
-const exchanger = ref()
-
 const testData = ref()
 const messageReply = ref()
-
 const messengerList = ref<Messenger[]>([])
-
 const templates = ref<Template[]>([])
 const templateImports = import.meta.glob('/templates/*.ts', { as: 'raw' })
 
@@ -69,7 +63,7 @@ onMounted(async () => {
 
   // init random messenger id
   myFetch('/api/get-messenger-id')
-    .then(result => messengerId.value = result.id)
+    .then(result => form.id = result.id)
 
   templates.value = await Promise.all(Object.entries(templateImports).map(async ([filename, im]) => {
     const exchanger = await im() as unknown as string
@@ -86,25 +80,21 @@ async function saveMessenger() {
   await formRef.value?.validate()
   await myFetch(`${origin.value}/api/save-messenger`, {
     method: 'POST',
-    body: {
-      id: messengerId.value,
-      exchanger: form.exchanger,
-      address: form.address.trim(),
-    }
+    body: form
   })
   ElMessage.success('Messenger saved!')
   loadMessengerList()
 }
 
-async function deleteMessenger(messenger: Messenger) {
-  await myFetch(`${origin.value}/api/delete-messenger`, {
-    method: 'DELETE',
-    body: {
-      id: messenger.id
-    }
-  })
-  loadMessengerList()
-}
+// async function deleteMessenger(messenger: Messenger) {
+//   await myFetch(`${origin.value}/api/delete-messenger`, {
+//     method: 'DELETE',
+//     body: {
+//       id: messenger.id
+//     }
+//   })
+//   loadMessengerList()
+// }
 
 async function triggerTest() {
   let message
@@ -127,16 +117,6 @@ async function triggerTest() {
 async function loadMessengerList() {
   const result: any = await myFetch(`${origin.value}/api/get-all-messengers`)
   messengerList.value = result.messengers
-}
-
-function showMessenger(messenger: Messenger) {
-  messengerId.value = messenger.id
-  address.value = messenger.address
-  exchanger.value = messenger.exchanger
-}
-
-function useTemplate(template: Template) {
-  exchanger.value = template.exchanger
 }
 
 function copy(text: string) {
@@ -171,12 +151,8 @@ function formatName(_r: any, _c: any, v: string | undefined) {
         label-width="130px"
         class="p20 pb0">
         <ElFormItem prop="id" label="Messenger">
-          {{messengerPrefix}}{{messengerId}}
-          <ClientOnly>
-            <ElTooltip content="Copy href" placement="right-start">
-              <div i-carbon:copy @click="copy(messengerUrl)" cursor-pointer ml-10 shrink-0 active:text-gray />
-            </ElToolTip>
-          </ClientOnly>
+          {{getMessengerHref(form.id)}}
+          <div i-carbon:copy @click="copy(getMessengerHref(form.id))" cursor-pointer ml-10 shrink-0 active:text-gray />
         </ElFormItem>
         <ElFormItem prop="name" label="Name">
           <ElInput v-model="form.name" placeholder="please input messenger name" maxlength="100" />
@@ -206,7 +182,7 @@ function formatName(_r: any, _c: any, v: string | undefined) {
     <section border rounded-4>
       <h2 relative border-b py10 text="bold 20 center">
         Messenger Playground
-        <Button class="absolute right-10 float-right" type="primary" plain :onClick="triggerTest">Run Test</Button>
+        <Button class="!absolute right-10" type="primary" plain :onClick="triggerTest">Run Test</Button>
       </h2>
       <div flex justify-between px20 pb-20>
         <div :style="{width: '49%'}" shrink-0>
@@ -262,7 +238,7 @@ function formatName(_r: any, _c: any, v: string | undefined) {
     </section>
 
     <!-- templates -->
-    <section border rounded-4>
+    <!-- <section border rounded-4>
       <h2 border-b py10 text="bold 20 center"> Templates </h2>
       <div 
         v-for="templateItem in templates"
@@ -274,7 +250,7 @@ function formatName(_r: any, _c: any, v: string | undefined) {
       <div text-gray text-center my20 v-if="!templates.length">
         No Templates yet.
       </div>
-    </section>
+    </section> -->
 
   </section>
 </template>

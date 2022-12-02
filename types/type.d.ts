@@ -1,5 +1,6 @@
 interface Messenger {
   id: string
+  name?: string
   exchanger: string
   transpiledExchanger: string
   address: string
