@@ -33,7 +33,6 @@ const form = reactive({
   exchanger: ''
 })
 const formRules: FormRules = {
-  name: { trigger: 'change', required: true, message: 'name is required' },
   address: {
     required: true, 
     trigger: 'change',
