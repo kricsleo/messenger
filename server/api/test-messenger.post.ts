@@ -1,14 +1,15 @@
-import { exchangeMessage, messenger2Runtime, answer } from '~~/utils/utils'
+import { deliverMessage, rawMessenger2Runtime, answer } from '~~/utils/utils'
 
 export default defineEventHandler(answer(async event => {
-  const messenger: MessengerWithmessage = await readBody(event)
+  const { raw, message }: { raw: string; message: Pair } = await readBody(event)
   // messenger id is not required for test
-  if(!messenger || !messenger.exchanger || !messenger.address) {
-    throw new Error('Missing required info for a messenger')
+  if(!raw) {
+    throw new Error('Missing "raw"')
   }
-  // a runtime cache can be used here for the test
-  const { runtime } = await messenger2Runtime(messenger)
-  const runtimeMessenger = { ...messenger, runtime }
-  const result = await exchangeMessage(runtimeMessenger, messenger.message)
+  if(!message) {
+    throw new Error('Missing "message"')
+  }
+  const messenger = await rawMessenger2Runtime(raw)
+  const result = await deliverMessage(messenger, message)
   return result
 }))

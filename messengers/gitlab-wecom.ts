@@ -22,6 +22,14 @@ interface WechatWorkMarkdownMsg {
 
 // WechatWork msg type: ... | 'image' | 'news' | 'file' | 'template_card'
 
+interface Meta {
+  description?: string
+  address: string | string[]
+}
+export const META: Meta = {
+  description: 'Bonjour!',
+  address: ''
+}
 
 export default function gitlab2WechatWork(gitlabPushEvent: GitlabPushEvent): WechatWorkTextMsg {
   return {

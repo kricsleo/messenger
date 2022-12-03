@@ -1,17 +1,13 @@
 interface Messenger {
   id: string
-  name?: string
-  exchanger: string
-  transpiledExchanger: string
-  address: string
-}
-
-interface RuntimeMessenger extends Messenger {
+  raw: string
+  transpiled: string
   runtime: (...args: any) => any
-}
-
-interface MessengerWithmessage extends Messenger {
-  message: Record<string, any>
+  meta: {
+    description?: string
+    target: string | string[]
+  }
+  active?: boolean
 }
 
 interface Template {
@@ -25,3 +21,5 @@ interface Result<T = any> {
   m?: string
   d?: T
 }
+
+type Pair<T = any> = Record<string, T>

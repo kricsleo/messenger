@@ -8,7 +8,7 @@ import { lintGutter, linter } from "@codemirror/lint";
 import Linter from 'eslint4b-prebuilt/dist/eslint4b.es.js'
 import { ElButton, ElForm, ElFormItem, ElInput, ElMessage, FormInstance, FormRules, ElTooltip, ElTable, ElTableColumn } from 'element-plus'
 
-const extentions = [
+const jsExtentions = [
   javascript({ typescript: true }),
   // dev mode in vite would overrite "process",
   // that will brake the "Linter" in browser
@@ -16,7 +16,6 @@ const extentions = [
   lintGutter(),
   oneDark
 ].filter(Boolean)
-
 const jsonExtension = [
   javascript(),
   oneDark,
@@ -24,31 +23,7 @@ const jsonExtension = [
 
 const origin = ref('~')
 
-
-const formRef = ref<FormInstance>()
-const form = reactive({
-  id: '',
-  name: '',
-  address: '',
-  exchanger: ''
-})
-const formRules: FormRules = {
-  address: {
-    required: true, 
-    trigger: 'change',
-    validator(_rule, value, cb) {
-      if(!value) {
-        cb(new Error('address is required'))
-      } else if(!isValidHref(value)) {
-        cb(new Error('this address is not a valid href'))
-      } else {
-        cb()
-      }
-    }
-},
-  exchanger: { required: true, message: 'exchanger is required'},
-}
-
+const messengerCode = ref()
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
 const testData = ref()
 const messageReply = ref()
@@ -61,8 +36,8 @@ onMounted(async () => {
   loadMessengerList()
 
   // init random messenger id
-  myFetch('/api/get-messenger-id')
-    .then(result => form.id = result.id)
+  // myFetch('/api/get-messenger-id')
+  //   .then(result => form.id = result.id)
 
   templates.value = await Promise.all(Object.entries(templateImports).map(async ([filename, im]) => {
     const exchanger = await im() as unknown as string
@@ -76,24 +51,15 @@ onMounted(async () => {
 })
 
 async function saveMessenger() {
-  await formRef.value?.validate()
   await myFetch(`${origin.value}/api/save-messenger`, {
     method: 'POST',
-    body: form
+    body: {
+      raw: messengerCode
+    }
   })
   ElMessage.success('Messenger saved!')
   loadMessengerList()
 }
-
-// async function deleteMessenger(messenger: Messenger) {
-//   await myFetch(`${origin.value}/api/delete-messenger`, {
-//     method: 'DELETE',
-//     body: {
-//       id: messenger.id
-//     }
-//   })
-//   loadMessengerList()
-// }
 
 async function triggerTest() {
   let message
@@ -105,10 +71,9 @@ async function triggerTest() {
   }
   messageReply.value = await myFetch(`${origin.value}/api/test-messenger`, {
     method: 'POST',
-    body: <MessengerWithmessage>{
-      address: form.address,
-      exchanger: form.exchanger,
-      message: message,
+    body: {
+      messenger: messengerCode,
+      message,
     }
   })
 }
@@ -124,14 +89,13 @@ function copy(text: string) {
 }
 
 function forkMessenger(messenger: Messenger) {
-  form.address = messenger.address
-  form.exchanger = messenger.exchanger
+  messengerCode.value = messenger.raw
 }
 
 function getMessengerHref(messengerId: string) {
   return messengerPrefix.value + messengerId
 }
-function formatName(_r: any, _c: any, v: string | undefined) {
+function formatDescription(_r: any, _c: any, v: string | undefined) {
   return v || '-'
 }
 </script>
@@ -141,40 +105,20 @@ function formatName(_r: any, _c: any, v: string | undefined) {
 
     <!-- edidor -->
     <section border rounded-4>
-      <h2 border-b py10 text="bold 20 center">Messenger Editor</h2>
-      <ElForm 
-        ref="formRef" 
-        :rules="formRules" 
-        :model="form" 
-        label-suffix=":" 
-        label-width="130px"
-        class="p20 pb0">
-        <ElFormItem prop="id" label="Messenger">
-          {{getMessengerHref(form.id)}}
-          <div i-carbon:copy @click="copy(getMessengerHref(form.id))" cursor-pointer ml-10 shrink-0 active:text-gray />
-        </ElFormItem>
-        <ElFormItem prop="name" label="Name">
-          <ElInput v-model="form.name" placeholder="please input messenger name" maxlength="100" />
-        </ElFormItem>
-        <ElFormItem prop="exchanger" label="Exchanger(JS/TS)">
-          <Codemirror 
-            v-model="form.exchanger"
-            placeholder="message exchange code goes here..."
-            :style="{height: '600px', width: '100%'}"
-            :autofocus="true"
-            :indent-with-tab="true"
-            :tab-size="2"
-            :extensions="extentions"
-            text-16
-          />
-        </ElFormItem>
-        <ElFormItem prop="address" label="Address">
-          <ElInput v-model="form.address" placeholder="please input href" />
-        </ElFormItem>
-        <ElFormItem>
-          <Button type="primary" :onClick="saveMessenger">Save Messenger</Button>
-        </ElFormItem>
-      </ElForm>
+      <h2 border-b py10 text="bold 20 center">
+        Messenger Editor
+        <span text-gray>(JS/TS)</span>
+      </h2>
+      <Codemirror 
+        v-model="messengerCode"
+        placeholder="messenger code goes here..."
+        :style="{height: '600px', width: '100%'}"
+        :autofocus="true"
+        :indent-with-tab="true"
+        :tab-size="2"
+        :extensions="jsExtentions"
+        text-16
+      />
     </section>
 
     <!-- playground -->
@@ -220,7 +164,7 @@ function formatName(_r: any, _c: any, v: string | undefined) {
       <h2 border-b py10 text="bold 20 center"> Messengers </h2>
       <ElTable :show-header="false" :data="messengerList" empty-text="No messengers yet.">
         <ElTableColumn prop="id" :formatter="(row: Messenger) => getMessengerHref(row.id)" />
-        <ElTableColumn prop="name" show-overflow-tooltip :formatter="formatName" />
+        <ElTableColumn prop="name" show-overflow-tooltip :formatter="formatDescription" />
         <ElTableColumn width="200px">
           <template #default="scope">
             <div text-right>
@@ -253,32 +197,3 @@ function formatName(_r: any, _c: any, v: string | undefined) {
 
   </section>
 </template>
-
-<style scope>
-.input {
-  border: 1px solid #444c56;
-  padding: 2px 5px;
-  border-radius: 6px;
-  transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
-  transition-property: color,background-color,box-shadow,border-color;
-}
-.input:hover {
-  border-color: #539bf5;
-}
-.btn {
-  background-color: #347d39;
-  color: #fff;
-  padding: 5px 16px;
-  border: 1px solid rgb(205 217 229 / 10%);
-  border-radius: 6px;
-  appearance: none;
-}
-.btn--plain {
-  color: #347d39;
-  border-color: currentColor;
-  background-color: transparent;
-}
-.btn--danger {
-  color: #e5534b;
-}
-</style>

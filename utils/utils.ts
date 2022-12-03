@@ -42,25 +42,51 @@ export async function code2Runtime(code: string) {
   return vmModule.namespace
 }
 
-export async function messenger2Runtime(messenger: Messenger) {
-  const transpiledCode = messenger.transpiledExchanger || transpileCode(messenger.exchanger)
+export async function rawMessenger2Runtime(raw: string) {
+  const transpiledCode = transpileCode(raw)
   const runtime = await code2Runtime(transpiledCode)
   // only use default export
   if(!runtime.default || typeof runtime.default !== 'function') {
     throw new Error('You must export a "default" function')
   }
+  // validte meta info
+  if(!runtime.meta || typeof runtime.meta !== 'object') {
+    throw new Error('You must export a "meta" object descriping messenger info')
+  }
+  const { address, description } = runtime.meta
+  const isValidAddress = 
+    typeof address === 'string' ? isValidHref(address)
+    : Array.isArray(address) ? address.every(href => isValidHref(href))
+      : false
+  if(!isValidAddress) {
+    throw new Error('"address" must a valid href or an array of it')
+  }
+  if(description && typeof description !== 'string') {
+    throw new Error('"description" must a string')
+  }
   return {
     transpiled: transpiledCode,
+    meta: runtime.meta as Messenger['meta'],
     runtime: runtime.default.bind(null) as (this: null, v: any) => any
   }
 }
 
-export async function exchangeMessage(runtimeMessenger: RuntimeMessenger, message: Record<string, any>) {
-  const delivered = runtimeMessenger.runtime(message)
-  const reply = await $fetch(runtimeMessenger.address, { 
-    method: 'POST', 
-    body: delivered
-  })
+export async function deliverMessage(messenger: Pick<Messenger, 'meta' | 'runtime'>, message: Pair) {
+  const delivered = messenger.runtime(message)
+  const {target} = messenger.meta
+  let reply
+  // todo: detect target loop
+  if(typeof target === 'string') {
+    reply = await $fetch(target, { 
+      method: 'POST', 
+      body: delivered
+    })
+  } else {
+    reply = await Promise.all(target.map(href => $fetch(href, { 
+      method: 'POST', 
+      body: delivered
+    }).catch(e => `${href} replyed error: ${e.message}`)))
+  }
   return {
     message,
     delivered,
@@ -114,4 +140,4 @@ export function isValidHref(href: string) {
   return urlPattern.test(href)
 }
 
-export const myNanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 6)
+export const myNanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 4)

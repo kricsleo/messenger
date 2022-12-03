@@ -17,7 +17,6 @@ export default defineConfig({
     presetRemToPx({ baseFontSize: 4 }),
   ],
   shortcuts: [
-    [/^border(.*)$/, ([, position]) => `border-gray-200/50 border${position}`],
     [/^wh-(.*)$/, ([, size]) => `w-${size} h-${size}`],
     ['center', 'flex justify-center items-center'],
     ['x-center', 'flex justify-center'],

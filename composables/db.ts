@@ -1,96 +1,61 @@
-import { createStorage } from 'unstorage'
-import { messenger2Runtime, myNanoid } from '~~/utils/utils'
+import { myNanoid, rawMessenger2Runtime } from '~~/utils/utils'
 
-class RuntimeCache {
-  cache: Map<string, RuntimeMessenger>
+class MessengerCache {
+  private cache: Map<string, Messenger>
   constructor() {
     this.cache = new Map()
   }
-  getItem(id: string) {
+  getMessenger(id: string) {
     return this.cache.get(id) ?? null
   }
-  setItem(id: string, runtime: RuntimeMessenger) {
-    return this.cache.set(id, runtime)
+  setMessenger(id: string, messenger: Messenger) {
+    return this.cache.set(id, messenger)
   }
-  removeItem(id: string) {
+  removeMessenger(id: string) {
     return this.cache.delete(id)
   }
-  hasItem(id: string) {
-    return this.cache.has(id)
-  }
-  getKeys() {
-    return this.cache.keys()
+  getAllMessengers() {
+    return [...this.cache.values()]
   }
 }
 
-/** memory runtime storage */
-const runtimeStorage = new RuntimeCache()
+/** memory messengers cache */
+export const messengerCache = new MessengerCache()
 
-/** persistently messenger storage */
-const messengerStorage = createStorage()
-
-/** memory operation */
-export async function getRuntimeMessenger(id: string): Promise<RuntimeMessenger | null> {
-  if(runtimeStorage.hasItem(id)) {
-    const runtimeMessenger = runtimeStorage.getItem(id) as RuntimeMessenger
-    return runtimeMessenger
-  } else if(await messengerStorage.hasItem(id)) {
-    const messenger = await messengerStorage.getItem(id) as Messenger
-    const runtimeMessenger = await setRuntimeMessenger(messenger)
-    return runtimeMessenger
+export async function getActiveMessenger(id: string): Promise<Messenger | null> {
+  const messenger = messengerCache.getMessenger(id)
+  if(!messenger) {
+    return null
   }
-  return null
-}
-
-export async function setRuntimeMessenger(messenger: Messenger): Promise<RuntimeMessenger> {
-  const { transpiled, runtime } = await messenger2Runtime(messenger)
-  const runtimeMessenger: RuntimeMessenger = { 
-    ...messenger,
-    transpiledExchanger: transpiled,
-    runtime,
+  if(messenger.active) {
+    return messenger
   }
   // You can freeze this runtime when it's not used after a period to reclaim memory.
   // I only do this when the memory is too small.
-  runtimeStorage.setItem(messenger.id, runtimeMessenger)
-  return runtimeMessenger
+  const runtime = await rawMessenger2Runtime(messenger.raw)
+  const activeMessenger = {...messenger, ...runtime}
+  messengerCache.setMessenger(id, activeMessenger)
+  return activeMessenger
 }
 
-export async function removeRuntimeMessenger(id: string) {
-  if(runtimeStorage.hasItem(id)) {
-    return runtimeStorage.removeItem(id)
-  }
-}
-
-/** persistent storage operation */
-export async function getMessenger(id: string) {
-  const messeger: Messenger | null = await messengerStorage.getItem(id) as any
-  return messeger
-}
-
-export async function getAllMessengers() {
-  const keys = await messengerStorage.getKeys()
-  const messengers = await Promise.all(keys.map(key => messengerStorage.getItem(key)))
-  return messengers
-}
-
-export async function removeMessenger(id: string) {
-  removeRuntimeMessenger(id)
-  await messengerStorage.removeItem(id)
-}
-
-export async function saveMessenger(messenger: Messenger) {
-  await messengerStorage.setItem(messenger.id, messenger)
-  if(runtimeStorage.hasItem(messenger.id)) {
-    runtimeStorage.removeItem(messenger.id)
-  }
-}
-
-export async function createMessengerId(): Promise<string> {
+export function createMessengerId(): string {
   const id = myNanoid()
   // if this id already existed, loop to find an avaliable one
-  if(!(await messengerStorage.hasItem(id))) {
+  if(!messengerCache.getMessenger(id)) {
     return id
   } else {
     return createMessengerId()
   }
+}
+
+export async function loadExistedMessenger() {
+  const messengerDir = '/messengers/*.ts'
+  const imports = import.meta.glob(messengerDir, { as: 'raw' }) as unknown as Pair<string>
+  console.log('imports',  imports);
+  const messengers = await Promise.all<Messenger>(Object.entries(imports).map(async ([filename, raw]) => {
+    const id = filename.split('/').pop()!.slice(0, -3)
+    const { transpiled, meta, runtime } = await rawMessenger2Runtime(raw)
+    return { id, raw, transpiled, meta, runtime }
+  }))
+  return messengers
 }
