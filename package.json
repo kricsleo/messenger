@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.1.11",
+    "@types/glob": "^8.0.0",
     "@unocss/nuxt": "^0.46.5",
     "@unocss/preset-rem-to-px": "^0.46.5",
     "@unocss/reset": "^0.46.5",
@@ -21,18 +22,19 @@
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.1.1",
-    "@codemirror/lint": "^6.1.0",
     "@codemirror/theme-one-dark": "^6.1.0",
     "@vueuse/core": "^9.6.0",
     "codemirror": "^6.0.1",
     "copy-to-clipboard": "^3.3.3",
     "element-plus": "^2.2.25",
-    "eslint4b-prebuilt": "^6.7.2",
+    "fast-glob": "^3.2.12",
+    "glob": "^8.0.3",
     "h3": "^1.0.1",
     "nanoid": "^4.0.0",
     "nuxt": "3.0.0",
     "typescript": "^4.9.3",
     "unstorage": "^1.0.1",
+    "vite-plugin-glob": "^0.3.2",
     "vue-codemirror": "^6.1.1"
   }
 }

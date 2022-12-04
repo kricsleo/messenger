@@ -24,11 +24,11 @@ interface WechatWorkMarkdownMsg {
 
 interface Meta {
   description?: string
-  address: string | string[]
+  target: string | string[]
 }
 export const meta: Meta = {
   description: 'Bonjour!',
-  address: 'https://bing.com'
+  target: 'https://bing.com'
 }
 
 export default function gitlab2WechatWork(gitlabPushEvent: GitlabPushEvent): WechatWorkTextMsg {

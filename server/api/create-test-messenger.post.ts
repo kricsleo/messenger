@@ -1,5 +1,5 @@
 import { answer, rawMessenger2Runtime } from '~~/utils/utils'
-import { messengerCache } from '~~/composables/db'
+import { messengerCache } from '~~/server/db'
 
 /** create a online messenger temporarily for test */
 export default defineEventHandler(answer(async event => {

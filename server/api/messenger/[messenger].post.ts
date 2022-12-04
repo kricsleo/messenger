@@ -1,4 +1,4 @@
-import { getActiveMessenger } from '~~/composables/db'
+import { getActiveMessenger } from '~~/server/db'
 import { answer, deliverMessage } from '~~/utils/utils'
 
 /** Call Messenger to deliver message */

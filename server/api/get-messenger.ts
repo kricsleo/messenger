@@ -1,4 +1,4 @@
-import { messengerCache } from '~~/composables/db'
+import { messengerCache } from '~~/server/db'
 import { answer } from '~~/utils/utils'
 
 export default defineEventHandler(answer(async event => {

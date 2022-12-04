@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import { Codemirror } from 'vue-codemirror'
-import { javascript, esLint } from '@codemirror/lang-javascript'
+import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import copyToClipboard from 'copy-to-clipboard';
-import { lintGutter, linter } from "@codemirror/lint";
-// @ts-ignore
-import Linter from 'eslint4b-prebuilt/dist/eslint4b.es.js'
 import { ElButton, ElForm, ElFormItem, ElInput, ElMessage, FormInstance, FormRules, ElTooltip, ElTable, ElTableColumn } from 'element-plus'
 import { useLocalStorage } from '@vueuse/core';
 
 const jsExtentions = [
   javascript({ typescript: true }),
-  // dev mode in vite would overrite "process",
-  // that will brake the "Linter" in browser
-  process.dev ? null as any : linter(esLint(new Linter())),
-  lintGutter(),
   oneDark
 ].filter(Boolean)
 const jsonExtension = [
@@ -181,8 +174,8 @@ function formatDescription(_r: any, _c: any, v: string | undefined) {
     <section border border-b-none rounded-4 overflow-hidden>
       <h2 border-b py10 text="bold 20 center"> Messengers </h2>
       <ElTable :show-header="false" :data="messengerList" empty-text="No messengers yet.">
-        <ElTableColumn prop="id" :formatter="(row: Messenger) => getMessengerHref(row.id)" />
-        <ElTableColumn prop="name" show-overflow-tooltip :formatter="formatDescription" />
+        <ElTableColumn :formatter="(row: Messenger) => getMessengerHref(row.id)" />
+        <ElTableColumn show-overflow-tooltip :formatter="(row: Messenger) => row.meta.description || '-'" />
         <ElTableColumn width="200px">
           <template #default="scope">
             <div text-right>
