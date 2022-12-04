@@ -1,5 +1,4 @@
 import ElementPlus from 'unplugin-element-plus/vite'
-import GlobPlugin from 'vite-plugin-glob'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -27,9 +26,6 @@ export default defineNuxtConfig({
   vite: {
     plugins: [
       ElementPlus(),
-      GlobPlugin({
-        takeover: true,
-      })
     ]
   },
 })

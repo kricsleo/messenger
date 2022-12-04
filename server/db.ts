@@ -1,5 +1,4 @@
-import { myNanoid, rawMessenger2Runtime, loadExistedMessenger } from '~~/utils/utils'
-import fs from 'fs/promises'
+import { myNanoid, rawMessenger2Runtime } from '~~/utils/utils'
 
 class MessengerCache {
   private cache: Map<string, Messenger>
@@ -10,7 +9,6 @@ class MessengerCache {
     return this.cache.get(id) ?? null
   }
   setMessenger(id: string, messenger: Messenger) {
-    console.log('settin', id);
     return this.cache.set(id, messenger)
   }
   removeMessenger(id: string) {
@@ -23,7 +21,6 @@ class MessengerCache {
 
 /** memory messengers cache */
 export const messengerCache = new MessengerCache()
-loadExistedMessenger()
 
 export async function getActiveMessenger(id: string): Promise<Messenger | null> {
   const messenger = messengerCache.getMessenger(id)
@@ -49,4 +46,18 @@ export function createMessengerId(): string {
   } else {
     return createMessengerId()
   }
+}
+
+export async function loadExistedMessenger() {
+  const fileKeys: string[] = await useStorage().getKeys('assets:server')
+  const messengers = await Promise.all(fileKeys.map(async fileKey => {
+    const raw = await useStorage().getItem(fileKey)
+    const id = fileKey.split(':').pop()!.split('.').pop()!
+    const { transpiled, meta, runtime } = await rawMessenger2Runtime(raw)
+    return { id, raw, transpiled, meta, runtime }
+  }))
+  messengers.forEach(messenger => {
+    messengerCache.setMessenger(messenger.id, messenger)
+  });
+  return messengers
 }

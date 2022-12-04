@@ -3,9 +3,7 @@ import { H3Event } from 'h3'
 import ts from 'typescript'
 import vm from 'vm'
 import { customAlphabet } from 'nanoid'
-import { messengerCache } from '~~/server/db'
 import fs from 'fs/promises'
-import fastGlob from 'fast-glob'
 
 /** Successful response */
 export function success<T = any>(data?: T): Result<T> {
@@ -127,17 +125,3 @@ export function isValidHref(href: string) {
 }
 
 export const myNanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 4)
-
-export async function loadExistedMessenger() {
-  const filepaths = await fastGlob('./server/assets/*.ts')
-  const filenames = filepaths.map(path => path.split('/').pop()!)
-  const messengers = await Promise.all(filenames.map(async filename => {
-    const raw = await useStorage().getItem(`assets/server/${filename}`)
-    const { transpiled, meta, runtime } = await rawMessenger2Runtime(raw)
-    return { id: filename.slice(0, -3), raw, transpiled, meta, runtime }
-  }))
-  messengers.forEach(messenger => {
-    messengerCache.setMessenger(messenger.id, messenger)
-  });
-  return messengers
-}
