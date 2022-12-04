@@ -27,8 +27,6 @@ async function trans(code: string) {
   const vmModule = new vm.SourceTextModule(code, { context })
   await vmModule.link((specifier: string) => {
     // forbidden using import
-    console.log('importing ', specifier);
-    
     throw new Error(`"import" is forbidden: you are importing "${specifier}"`)
   });
   

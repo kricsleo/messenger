@@ -7,6 +7,7 @@ import { lintGutter, linter } from "@codemirror/lint";
 // @ts-ignore
 import Linter from 'eslint4b-prebuilt/dist/eslint4b.es.js'
 import { ElButton, ElForm, ElFormItem, ElInput, ElMessage, FormInstance, FormRules, ElTooltip, ElTable, ElTableColumn } from 'element-plus'
+import { useLocalStorage } from '@vueuse/core';
 
 const jsExtentions = [
   javascript({ typescript: true }),
@@ -23,13 +24,30 @@ const jsonExtension = [
 
 const origin = ref('~')
 
-const messengerCode = ref()
+const messengerCode = useLocalStorage('messengerCode', '')
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
-const testData = ref()
+const testData = useLocalStorage('testData', `{}`)
 const messageReply = ref()
 const messengerList = ref<Messenger[]>([])
 const templates = ref<Template[]>([])
 const templateImports = import.meta.glob('/templates/*.ts', { as: 'raw' })
+
+const myFetch = $fetch.create({
+  onRequestError({ error }) {
+    ElMessage.error(error.message) 
+  },
+  async onResponse({ response }) {
+    const data = response._data
+    if(data?.c !== 0) {
+      ElMessage.error(data?.m || 'Unknown error')  
+      return Promise.reject(response)
+    }
+    response._data = data.d
+  },
+  onResponseError({ error }) {
+    ElMessage.error(error?.message || 'Unknown error')
+  },
+})
 
 onMounted(async () => {
   origin.value = window.location.origin
@@ -54,7 +72,7 @@ async function saveMessenger() {
   await myFetch(`${origin.value}/api/save-messenger`, {
     method: 'POST',
     body: {
-      raw: messengerCode
+      raw: messengerCode.value
     }
   })
   ElMessage.success('Messenger saved!')
@@ -72,7 +90,7 @@ async function triggerTest() {
   messageReply.value = await myFetch(`${origin.value}/api/test-messenger`, {
     method: 'POST',
     body: {
-      messenger: messengerCode,
+      raw: messengerCode.value,
       message,
     }
   })

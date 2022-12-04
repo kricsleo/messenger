@@ -44,22 +44,22 @@ export async function code2Runtime(code: string) {
 
 export async function rawMessenger2Runtime(raw: string) {
   const transpiledCode = transpileCode(raw)
-  const runtime = await code2Runtime(transpiledCode)
+  const runtime: { default: Messenger['runtime']; meta: Messenger['meta'] } = await code2Runtime(transpiledCode)
   // only use default export
   if(!runtime.default || typeof runtime.default !== 'function') {
     throw new Error('You must export a "default" function')
   }
   // validte meta info
   if(!runtime.meta || typeof runtime.meta !== 'object') {
-    throw new Error('You must export a "meta" object descriping messenger info')
+    throw new Error('You must export a "meta" object describing messenger info')
   }
-  const { address, description } = runtime.meta
-  const isValidAddress = 
-    typeof address === 'string' ? isValidHref(address)
-    : Array.isArray(address) ? address.every(href => isValidHref(href))
+  const { target, description } = runtime.meta
+  const isValidTarget = 
+    typeof target === 'string' ? isValidHref(target)
+    : Array.isArray(target) ? target.every(href => isValidHref(href))
       : false
-  if(!isValidAddress) {
-    throw new Error('"address" must a valid href or an array of it')
+  if(!isValidTarget) {
+    throw new Error('"target" must a valid href or an array of it')
   }
   if(description && typeof description !== 'string') {
     throw new Error('"description" must a string')
@@ -117,23 +117,6 @@ export function answer(fn: (event: H3Event) => any) {
     }
   }
 }
-
-export const myFetch = $fetch.create({
-  onRequestError({ error }) {
-    ElMessage.error(error.message) 
-  },
-  async onResponse({ response }) {
-    const data = response._data
-    if(data?.c !== 0) {
-      ElMessage.error(data?.m || 'Unknown error')  
-      return Promise.reject(response)
-    }
-    response._data = data.d
-  },
-  onResponseError({ error }) {
-    ElMessage.error(error?.message || 'Unknown error')
-  },
-})
 
 export function isValidHref(href: string) {
   const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;

@@ -26,9 +26,9 @@ interface Meta {
   description?: string
   address: string | string[]
 }
-export const META: Meta = {
+export const meta: Meta = {
   description: 'Bonjour!',
-  address: ''
+  address: 'https://bing.com'
 }
 
 export default function gitlab2WechatWork(gitlabPushEvent: GitlabPushEvent): WechatWorkTextMsg {

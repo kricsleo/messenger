@@ -1,4 +1,5 @@
 import { myNanoid, rawMessenger2Runtime } from '~~/utils/utils'
+import fs from 'fs/promises'
 
 class MessengerCache {
   private cache: Map<string, Messenger>
@@ -9,12 +10,14 @@ class MessengerCache {
     return this.cache.get(id) ?? null
   }
   setMessenger(id: string, messenger: Messenger) {
+    console.log('settin', id);
     return this.cache.set(id, messenger)
   }
   removeMessenger(id: string) {
     return this.cache.delete(id)
   }
   getAllMessengers() {
+    console.log('getting',);
     return [...this.cache.values()]
   }
 }
@@ -49,13 +52,16 @@ export function createMessengerId(): string {
 }
 
 export async function loadExistedMessenger() {
-  const messengerDir = '/messengers/*.ts'
-  const imports = import.meta.glob(messengerDir, { as: 'raw' }) as unknown as Pair<string>
-  console.log('imports',  imports);
-  const messengers = await Promise.all<Messenger>(Object.entries(imports).map(async ([filename, raw]) => {
+  const imports = import.meta.glob('./messengers/*.ts')
+  const messengers = await Promise.all<Messenger>(Object.entries(imports).map(async ([filename, im]) => {
     const id = filename.split('/').pop()!.slice(0, -3)
+    const raw = await im() as unknown as string
+    console.log('raw', raw);
     const { transpiled, meta, runtime } = await rawMessenger2Runtime(raw)
     return { id, raw, transpiled, meta, runtime }
   }))
+  messengers.forEach(messenger => {
+    messengerCache.setMessenger(messenger.id, messenger)
+  });
   return messengers
 }
