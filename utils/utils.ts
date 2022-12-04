@@ -105,11 +105,11 @@ export const debug = {
 
 export function answer(fn: (event: H3Event) => any) {
   return async (event: H3Event) => {
-    setResponseHeaders(event, {
-      'access-control-allow-origin': '*',
-      'access-control-allow-methods': 'PUT,POST,GET,DELETE,OPTIONS',
-      'access-control-allow-headers': 'Origin, Content-Type, Accept'
-    })
+    // setResponseHeaders(event, {
+    //   'access-control-allow-origin': '*',
+    //   'access-control-allow-methods': 'PUT,POST,GET,DELETE,OPTIONS',
+    //   'access-control-allow-headers': 'Origin, Content-Type, Accept'
+    // })
     try {
       const result = await fn(event);
       debug.log('Server answerd', event.node.req.url);
