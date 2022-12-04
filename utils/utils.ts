@@ -45,9 +45,14 @@ export async function code2Runtime(code: string) {
   return vmModule.namespace
 }
 
+export async function code2RuntimeUnsafe(code: string) {
+  const module = await import(`data:text/javascript,${code}`)
+  return module
+}
+
 export async function rawMessenger2Runtime(raw: string) {
   const transpiledCode = transpileCode(raw)
-  const runtime: { default: Messenger['runtime']; meta: Messenger['meta'] } = await code2Runtime(transpiledCode)
+  const runtime: { default: Messenger['runtime']; meta: Messenger['meta'] } = await code2RuntimeUnsafe(transpiledCode)
   // only use default export
   if(!runtime.default || typeof runtime.default !== 'function') {
     throw new Error('You must export a "default" function')
@@ -105,11 +110,6 @@ export const debug = {
 
 export function answer(fn: (event: H3Event) => any) {
   return async (event: H3Event) => {
-    // setResponseHeaders(event, {
-    //   'access-control-allow-origin': '*',
-    //   'access-control-allow-methods': 'PUT,POST,GET,DELETE,OPTIONS',
-    //   'access-control-allow-headers': 'Origin, Content-Type, Accept'
-    // })
     try {
       const result = await fn(event);
       debug.log('Server answerd', event.node.req.url);
