@@ -129,7 +129,7 @@ function getMessengerHref(messengerId: string) {
 </script>
 
 <template>
-  <section text-dark max-w-800 mx-auto py20 space-y-30>
+  <section text-dark max-w-1000 mx-auto py20 space-y-30>
 
     <!-- edidor -->
     <section ref="editorContent" border rounded-4>
