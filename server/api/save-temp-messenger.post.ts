@@ -8,12 +8,12 @@ export default defineAnswer(async event => {
     throw new Error('"raw" is required')
   }
   const id = body.id || createMessengerId()
-  const messenger = messengerCache.getMessenger(id)
+  const messenger = messengerCache.get(id)
   // only temporarily messenger can be edit
   if(messenger && !messenger.temp) {
     throw new Error(`this messenger can't be overwritten`)
   }
   const result = await rawMessenger2Runtime(body.raw)
-  messengerCache.setMessenger(id, { id, raw: body.raw, temp: true, ...result })
+  messengerCache.set(id, { id, raw: body.raw, temp: true, ...result })
   return { id }
 })

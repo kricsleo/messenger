@@ -3,7 +3,7 @@ import { defineAnswer } from '../utils/utils'
 
 export default defineAnswer(async event => {
   const messengerId = getQuery(event).id as string
-  const messenger = messengerCache.getMessenger(messengerId)
+  const messenger = messengerCache.get(messengerId)
   if(!messenger) {
     throw new Error('messenger not exist')
   }

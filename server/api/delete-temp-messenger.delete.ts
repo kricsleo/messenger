@@ -6,6 +6,6 @@ export default defineAnswer(async event => {
   const messengerId = body.id as string
   // persisted messenger can also be deleted
   // in some edge case
-  messengerCache.removeMessenger(messengerId)
+  messengerCache.remove(messengerId)
   return 'Messenger deleted.'
 })

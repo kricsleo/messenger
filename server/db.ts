@@ -1,29 +1,30 @@
 import { rawMessenger2Runtime, myNanoid } from './utils/utils'
 
-class MessengerCache {
-  private cache: Map<string, Messenger>
+class MemoryCache<T> {
+  private cache: Map<string, T>
   constructor() {
     this.cache = new Map()
   }
-  getMessenger(id: string) {
+  get(id: string) {
     return this.cache.get(id) ?? null
   }
-  setMessenger(id: string, messenger: Messenger) {
-    return this.cache.set(id, messenger)
+  set(id: string, value: T) {
+    return this.cache.set(id, value)
   }
-  removeMessenger(id: string) {
+  remove(id: string) {
     return this.cache.delete(id)
   }
-  getAllMessengers() {
+  getAll() {
     return [...this.cache.values()]
   }
 }
 
 /** memory messengers cache */
-export const messengerCache = new MessengerCache()
+export const messengerCache = new MemoryCache<Messenger>()
+export const templateCache = new MemoryCache<Template>()
 
 export async function getActiveMessenger(id: string): Promise<Messenger | null> {
-  const messenger = messengerCache.getMessenger(id)
+  const messenger = messengerCache.get(id)
   if(!messenger) {
     return null
   }
@@ -34,30 +35,39 @@ export async function getActiveMessenger(id: string): Promise<Messenger | null> 
   // I only do this when the memory is too small.
   const runtime = await rawMessenger2Runtime(messenger.raw)
   const activeMessenger = {...messenger, ...runtime}
-  messengerCache.setMessenger(id, activeMessenger)
+  messengerCache.set(id, activeMessenger)
   return activeMessenger
 }
 
 export function createMessengerId(): string {
   const id = myNanoid()
   // if this id already existed, loop to find an avaliable one
-  if(!messengerCache.getMessenger(id)) {
+  if(!messengerCache.get(id)) {
     return id
   } else {
     return createMessengerId()
   }
 }
 
-export async function loadExistedMessenger() {
-  const fileKeys: string[] = await useStorage().getKeys('assets:server')
-  const messengers = await Promise.all(fileKeys.map(async fileKey => {
-    const raw = await useStorage().getItem(fileKey)
+export async function loadServerAssets(path: string) {
+  const fileKeys: string[] = await useStorage().getKeys(path)
+  const assets = await Promise.all(fileKeys.map(async fileKey => {
+    const raw: string = await useStorage().getItem(fileKey)
     const id = fileKey.split(':').pop()!.split('.').shift()!
-    const { transpiled, meta, runtime } = await rawMessenger2Runtime(raw)
-    return { id, raw, transpiled, meta, runtime }
+    return { id, raw }
   }))
-  messengers.forEach(messenger => {
-    messengerCache.setMessenger(messenger.id, messenger)
-  });
-  return messengers
+  return assets
+}
+
+export async function loadExistedMessenger() {
+  const messengerAssets = await loadServerAssets('assets:server:messengers')
+  await Promise.all(messengerAssets.map(async asset => {
+    const messenger = await rawMessenger2Runtime(asset.raw)
+    messengerCache.set(asset.id, { ...messenger, id: asset.id, raw: asset.raw })
+  }))
+}
+
+export async function loadExistedTemplates() {
+  const templateAssets = await loadServerAssets('assets:server:templates')
+  templateAssets.forEach(asset => templateCache.set(asset.id, asset))
 }

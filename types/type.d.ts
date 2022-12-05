@@ -13,8 +13,7 @@ interface Messenger {
 
 interface Template {
   id: string
-  name: string
-  exchanger: string
+  raw: string
 }
 
 interface Result<T = any> {

@@ -15,7 +15,7 @@ const jsonExtension = [
   oneDark,
 ]
 
-const origin = ref('~')
+const messengerPrefix = ref('')
 const templateMessengerCode = `
 /** export messenger meta info */
 interface Meta {
@@ -43,23 +43,30 @@ export default function transformer(message: Message): Delivered {
 }
 
 `
+
+const editorContent = ref<HTMLDivElement>()
 const tempMessengerId = ref()
 const messengerCode = useLocalStorage('messengerCode', templateMessengerCode)
-const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
 const testData = useLocalStorage('testData', `{}`)
 const messageReply = ref()
-const messengerList = ref<Messenger[]>([])
-const tempMessengerList = computed(() => messengerList.value.filter(messenger => messenger.temp))
-const persistedMessengerList = computed(() => messengerList.value.filter(messenger => !messenger.temp))
-const editorContent = ref<HTMLDivElement>()
 
-onMounted(async () => {
-  origin.value = window.location.origin
-  loadMessengerList()
+const messengerListState = useAsync<Messenger[]>(
+  () => myFetch(`/api/get-all-messengers`).then(result => result.messengers),
+  []
+)
+const tempMessengerList = computed(() => messengerListState.data.filter(messenger => messenger.temp))
+const persistedMessengerList = computed(() => messengerListState.data.filter(messenger => !messenger.temp))
+
+const templateListState = useAsync<Template[]>(
+  () => myFetch('/api/get-all-templates').then(result => result.templates),
+)
+
+onMounted(() => {
+  messengerPrefix.value = `${window.location.origin}/api/messenger/`
 })
 
 async function saveTempMessenger() {
-  const { id } = await myFetch(`${origin.value}/api/save-temp-messenger`, {
+  const { id } = await myFetch(`/api/save-temp-messenger`, {
     method: 'POST',
     body: {
       id: tempMessengerId.value,
@@ -68,16 +75,16 @@ async function saveTempMessenger() {
   })
   tempMessengerId.value = id
   ElMessage.success('Temporary messenger saved!')
-  loadMessengerList()
+  messengerListState.execute()
 }
 
 async function deleteTempMessenger(messenger: Messenger) {
-  await myFetch(`${origin.value}/api/delete-temp-messenger`, {
+  await myFetch(`/api/delete-temp-messenger`, {
     method: 'DELETE',
     body: messenger
   })
   ElMessage.success('Temporary messenger deleted!')
-  loadMessengerList()
+  messengerListState.execute()
 }
 
 async function triggerTest() {
@@ -88,7 +95,7 @@ async function triggerTest() {
     ElMessage.error('Test data is not a valid json')
     return
   }
-  messageReply.value = await myFetch(`${origin.value}/api/test-messenger`, {
+  messageReply.value = await myFetch(`/api/test-messenger`, {
     method: 'POST',
     body: {
       raw: messengerCode.value,
@@ -96,11 +103,6 @@ async function triggerTest() {
     }
   })
   ElMessage.success('Test triggered')
-}
-
-async function loadMessengerList() {
-  const result: any = await myFetch(`${origin.value}/api/get-all-messengers`)
-  messengerList.value = result.messengers
 }
 
 function copy(text: string) {
@@ -233,19 +235,19 @@ function getMessengerHref(messengerId: string) {
     </section>
 
     <!-- templates -->
-    <!-- <section border rounded-4>
+    <section border rounded-4>
       <h2 border-b py10 text="bold 20 center"> Templates </h2>
-      <div 
-        v-for="templateItem in templates"
-        :key="templateItem.id"
-        flex my-10>
-        <span>{{templateItem.name}}</span>
-        <button class="ml-auto btn btn--plain" @click="useTemplate(templateItem)">Use</button>
-      </div>
-      <div text-gray text-center my20 v-if="!templates.length">
-        No Templates yet.
-      </div>
-    </section> -->
+      <ElTable :show-header="false" :data="templateListState.data" empty-text="No templates yet.">
+        <ElTableColumn :formatter="(row: Template) => row.id" />
+        <ElTableColumn width="200px">
+          <template #default="scope">
+            <div text-right>
+              <ElButton @click="forkMessenger(scope.row)">Fork</ElButton>
+            </div>
+          </template>
+        </ElTableColumn>
+      </ElTable>
+    </section>
 
   </section>
 </template>
