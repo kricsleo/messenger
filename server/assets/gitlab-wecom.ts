@@ -28,7 +28,7 @@ interface Meta {
 }
 export const meta: Meta = {
   description: 'Bonjour!',
-  target: 'https://bing.com'
+  target: 'https://bing.com?key=demo'
 }
 
 export default function gitlab2WechatWork(gitlabPushEvent: GitlabPushEvent): WechatWorkTextMsg {

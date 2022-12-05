@@ -21,36 +21,44 @@ export function fail(msg: string): Result<undefined> {
   }
 }
 
-export function transpileCode(code: string) {
-  const result = ts.transpile(code, { 
+export function transpileString(str: string) {
+  const result = ts.transpile(str, { 
     target: ts.ScriptTarget.ESNext
   })
   return result
 }
 
-export async function code2Runtime(code: string) {
-  // running context
-  const context = vm.createContext({});
+/**
+ * compile string to runtime
+ * using "SourceTextModule"(https://nodejs.org/api/vm.html#class-vmmodule) as first choice,
+ * if "--experimental-vm-modules" is not enabled,
+ * fallback to "unsafe" "import('data:')"
+ */
+export async function string2Runtime(str: string) {
   // @ts-expect-error experimental
-  const vmModule = new vm.SourceTextModule(code, { context })
-  await vmModule.link((specifier: string) => {
-    // for security:
-    // "import" is forbidden
-    // "require" is also undefined
-    throw new Error(`"import" is forbidden: you are importing "${specifier}"`)
-  });
-  await vmModule.evaluate()
-  return vmModule.namespace
-}
-
-export async function code2RuntimeUnsafe(code: string) {
-  const module = await import(`data:text/javascript,${code}`)
-  return module
+  if(vm.SourceTextModule) {
+    // running context
+    const context = vm.createContext({});
+    // @ts-expect-error experimental
+    const vmModule = new vm.SourceTextModule(str, { context })
+    await vmModule.link((specifier: string) => {
+      // for security:
+      // "import" is forbidden
+      // "require" is also undefined
+      throw new Error(`"import" is forbidden: you are importing "${specifier}"`)
+    });
+    await vmModule.evaluate()
+    return vmModule.namespace
+  } else {
+    debug.warn(`"--experimental-vm-modules" is not enabled, fallback to "import" to compile module`)
+    const module = await import(`data:text/javascript;base64,${Buffer.from(str).toString('base64')}`)
+    return module
+  }
 }
 
 export async function rawMessenger2Runtime(raw: string) {
-  const transpiledCode = transpileCode(raw)
-  const runtime: { default: Messenger['runtime']; meta: Messenger['meta'] } = await code2RuntimeUnsafe(transpiledCode)
+  const transpiledCode = transpileString(raw)
+  const runtime: { default: Messenger['runtime']; meta: Messenger['meta'] } = await string2Runtime(transpiledCode)
   // only use default export
   if(!runtime.default || typeof runtime.default !== 'function') {
     throw new Error('You must export a "default" function')

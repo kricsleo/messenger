@@ -188,7 +188,7 @@ function getMessengerHref(messengerId: string) {
       <!-- temp messenger list -->
     <section border border-b-none rounded-4 overflow-hidden>
       <h2 relative border-b py10 text="bold 20 center rose"> 
-        Temporay Messengers 
+        Temporay Messengers (Test only)
         <Button class="!absolute right-10" type="primary" plain :onClick="saveTempMessenger">Save Temporary Messenger</Button>
       </h2>
       <ElTable :show-header="false" :data="tempMessengerList" empty-text="No temporary messengers yet.">
