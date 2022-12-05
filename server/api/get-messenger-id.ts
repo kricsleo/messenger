@@ -1,9 +1,9 @@
 import { createMessengerId } from '~~/server/db'
-import { answer } from '~~/utils/utils'
+import { defineAnswer } from '../utils/utils'
 
-export default defineEventHandler(answer(async event => {
+export default defineAnswer(async event => {
   const messengerId = createMessengerId()
   return {
     id: messengerId
   }
-}))
+})

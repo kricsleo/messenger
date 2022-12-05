@@ -1,8 +1,8 @@
-import { answer, rawMessenger2Runtime } from '~~/utils/utils'
 import { createMessengerId, messengerCache } from '~~/server/db'
+import { defineAnswer, rawMessenger2Runtime } from '../utils/utils';
 
 /** save an online messenger temporarily for test */
-export default defineEventHandler(answer(async event => {
+export default defineAnswer(async event => {
   const body: { raw: string; id?: string } = await readBody(event)
   if(!body.raw) {
     throw new Error('"raw" is required')
@@ -16,4 +16,4 @@ export default defineEventHandler(answer(async event => {
   const result = await rawMessenger2Runtime(body.raw)
   messengerCache.setMessenger(id, { id, raw: body.raw, temp: true, ...result })
   return { id }
-}))
+})

@@ -1,7 +1,7 @@
 import { messengerCache } from '~~/server/db'
-import { answer } from '~~/utils/utils'
+import { defineAnswer } from '../utils/utils'
 
-export default defineEventHandler(answer(async event => {
+export default defineAnswer(async event => {
   const messengerId = getQuery(event).id as string
   const messenger = messengerCache.getMessenger(messengerId)
   if(!messenger) {
@@ -9,4 +9,4 @@ export default defineEventHandler(answer(async event => {
   }
   const { runtime, ...rest } = messenger
   return rest
-}))
+})

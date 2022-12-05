@@ -3,7 +3,7 @@ import { Codemirror } from 'vue-codemirror'
 import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import copyToClipboard from 'copy-to-clipboard';
-import { ElButton, ElForm, ElFormItem, ElInput, ElMessage, FormInstance, FormRules, ElTooltip, ElTable, ElTableColumn } from 'element-plus'
+import { ElButton, ElMessage, ElTable, ElTableColumn } from 'element-plus'
 import { useLocalStorage } from '@vueuse/core';
 
 const jsExtentions = [
@@ -16,53 +16,46 @@ const jsonExtension = [
 ]
 
 const origin = ref('~')
+const templateMessengerCode = `
+/** export messenger meta info */
+interface Meta {
+  /** description of messenger */
+  description?: string
+  /** target href of messenger */
+  target: string | string[]
+}
+export const meta: Meta = {
+  description: 'Bonjour!',
+  target: ''
+}
 
+/** export default transformer function to transform message between the trigger and the receiver */
+interface Message {
+
+}
+interface Delivered {
+
+}
+export default function transformer(message: Message): Delivered {
+  return {
+    
+  }
+}
+
+`
 const tempMessengerId = ref()
-const messengerCode = useLocalStorage('messengerCode', '')
+const messengerCode = useLocalStorage('messengerCode', templateMessengerCode)
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
 const testData = useLocalStorage('testData', `{}`)
 const messageReply = ref()
 const messengerList = ref<Messenger[]>([])
 const tempMessengerList = computed(() => messengerList.value.filter(messenger => messenger.temp))
 const persistedMessengerList = computed(() => messengerList.value.filter(messenger => !messenger.temp))
-const templates = ref<Template[]>([])
-const templateImports = import.meta.glob('/templates/*.ts', { as: 'raw' })
 const editorContent = ref<HTMLDivElement>()
-
-const myFetch = $fetch.create({
-  onRequestError({ error }) {
-    ElMessage.error(error.message) 
-  },
-  async onResponse({ response }) {
-    const data = response._data
-    if(data?.c !== 0) {
-      ElMessage.error(data?.m || 'Unknown error')  
-      return Promise.reject(response)
-    }
-    response._data = data.d
-  },
-  onResponseError({ error }) {
-    ElMessage.error(error?.message || 'Unknown error')
-  },
-})
 
 onMounted(async () => {
   origin.value = window.location.origin
   loadMessengerList()
-
-  // init random messenger id
-  // myFetch('/api/get-messenger-id')
-  //   .then(result => form.id = result.id)
-
-  templates.value = await Promise.all(Object.entries(templateImports).map(async ([filename, im]) => {
-    const exchanger = await im() as unknown as string
-    const templateName = filename.split('/').pop()?.slice(0, -3) || 'unknown template'
-    return {
-      id: templateName,
-      name: templateName,
-      exchanger
-    }
-  }))
 })
 
 async function saveTempMessenger() {
@@ -102,6 +95,7 @@ async function triggerTest() {
       message,
     }
   })
+  ElMessage.success('Test triggered')
 }
 
 async function loadMessengerList() {
@@ -114,10 +108,16 @@ function copy(text: string) {
   ElMessage.success('Copied!')
 }
 
-function forkMessenger(messenger: Messenger, temp = false) {
+function forkMessenger(messenger: Messenger) {
   messengerCode.value = messenger.raw
-  temp && (tempMessengerId.value = messenger.id)
-  ElMessage.success('Forked!')
+  ElMessage.success('Forked to edidor!')
+  editorContent.value?.scrollIntoView({behavior: 'smooth'})
+}
+
+function editMessenger(messenger: Messenger) {
+  messengerCode.value = messenger.raw
+  tempMessengerId.value = messenger.id
+  ElMessage.success('Applyed to editor')
   editorContent.value?.scrollIntoView({behavior: 'smooth'})
 }
 
@@ -131,9 +131,10 @@ function getMessengerHref(messengerId: string) {
 
     <!-- edidor -->
     <section ref="editorContent" border rounded-4>
-      <h2 border-b py10 text="bold 20 center">
+      <h2 relative border-b py10 text="bold 20 center">
         Messenger Editor
         <span text-gray>(JS/TS)</span>
+        <ElButton class="!absolute right-10" type="primary" plain @click="(messengerCode = templateMessengerCode)">Reset</ElButton>
       </h2>
       <Codemirror 
         v-model="messengerCode"
@@ -200,7 +201,7 @@ function getMessengerHref(messengerId: string) {
               <ElButton @click="copy(getMessengerHref(scope.row.id))">
                 <div i-carbon:copy />
               </ElButton>
-              <ElButton @click="forkMessenger(scope.row, true)">Edit</ElButton>
+              <ElButton @click="editMessenger(scope.row)">Edit</ElButton>
               <PopConfirm
                 :on-confirm="() => deleteTempMessenger(scope.row)"
                 :title="`Delete '${getMessengerHref(scope.row.id)}' ?`">

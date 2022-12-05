@@ -1,9 +1,9 @@
-import { answer } from '~~/utils/utils'
 import { name, version } from '../../package.json'
+import { defineAnswer } from '../utils/utils'
 
-export default defineEventHandler(answer(() => {
+export default defineAnswer(() => {
   return {
     name,
     version,
   }
-}))
+})
