@@ -3,7 +3,5 @@ import { answer } from '~~/utils/utils'
 
 export default defineEventHandler(answer(async event => {
   const messengers = messengerCache.getAllMessengers()
-  return {
-    messengers
-  }
+  return { messengers }
 }))

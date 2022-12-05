@@ -17,13 +17,17 @@ const jsonExtension = [
 
 const origin = ref('~')
 
+const tempMessengerId = ref()
 const messengerCode = useLocalStorage('messengerCode', '')
 const messengerPrefix = computed(() => `${origin.value}/api/messenger/`)
 const testData = useLocalStorage('testData', `{}`)
 const messageReply = ref()
 const messengerList = ref<Messenger[]>([])
+const tempMessengerList = computed(() => messengerList.value.filter(messenger => messenger.temp))
+const persistedMessengerList = computed(() => messengerList.value.filter(messenger => !messenger.temp))
 const templates = ref<Template[]>([])
 const templateImports = import.meta.glob('/templates/*.ts', { as: 'raw' })
+const editorContent = ref<HTMLDivElement>()
 
 const myFetch = $fetch.create({
   onRequestError({ error }) {
@@ -61,14 +65,25 @@ onMounted(async () => {
   }))
 })
 
-async function saveMessenger() {
-  await myFetch(`${origin.value}/api/save-messenger`, {
+async function saveTempMessenger() {
+  const { id } = await myFetch(`${origin.value}/api/save-temp-messenger`, {
     method: 'POST',
     body: {
+      id: tempMessengerId.value,
       raw: messengerCode.value
     }
   })
-  ElMessage.success('Messenger saved!')
+  tempMessengerId.value = id
+  ElMessage.success('Temporary messenger saved!')
+  loadMessengerList()
+}
+
+async function deleteTempMessenger(messenger: Messenger) {
+  await myFetch(`${origin.value}/api/delete-temp-messenger`, {
+    method: 'DELETE',
+    body: messenger
+  })
+  ElMessage.success('Temporary messenger deleted!')
   loadMessengerList()
 }
 
@@ -99,15 +114,15 @@ function copy(text: string) {
   ElMessage.success('Copied!')
 }
 
-function forkMessenger(messenger: Messenger) {
+function forkMessenger(messenger: Messenger, temp = false) {
   messengerCode.value = messenger.raw
+  temp && (tempMessengerId.value = messenger.id)
+  ElMessage.success('Forked!')
+  editorContent.value?.scrollIntoView({behavior: 'smooth'})
 }
 
 function getMessengerHref(messengerId: string) {
   return messengerPrefix.value + messengerId
-}
-function formatDescription(_r: any, _c: any, v: string | undefined) {
-  return v || '-'
 }
 </script>
 
@@ -115,7 +130,7 @@ function formatDescription(_r: any, _c: any, v: string | undefined) {
   <section text-dark max-w-800 mx-auto py20 space-y-30>
 
     <!-- edidor -->
-    <section border rounded-4>
+    <section ref="editorContent" border rounded-4>
       <h2 border-b py10 text="bold 20 center">
         Messenger Editor
         <span text-gray>(JS/TS)</span>
@@ -170,21 +185,46 @@ function formatDescription(_r: any, _c: any, v: string | undefined) {
       </div>
     </section>
 
-    <!-- messenger list -->
+      <!-- temp messenger list -->
     <section border border-b-none rounded-4 overflow-hidden>
-      <h2 border-b py10 text="bold 20 center"> Messengers </h2>
-      <ElTable :show-header="false" :data="messengerList" empty-text="No messengers yet.">
-        <ElTableColumn :formatter="(row: Messenger) => getMessengerHref(row.id)" />
+      <h2 relative border-b py10 text="bold 20 center rose"> 
+        Temporay Messengers 
+        <Button class="!absolute right-10" type="primary" plain :onClick="saveTempMessenger">Save Temporary Messenger</Button>
+      </h2>
+      <ElTable :show-header="false" :data="tempMessengerList" empty-text="No temporary messengers yet.">
+        <ElTableColumn width="400px" :formatter="(row: Messenger) => getMessengerHref(row.id)" />
+        <ElTableColumn show-overflow-tooltip :formatter="(row: Messenger) => row.meta.description || '-'" />
+        <ElTableColumn width="250px">
+          <template #default="scope">
+            <div text-right>
+              <ElButton @click="copy(getMessengerHref(scope.row.id))">
+                <div i-carbon:copy />
+              </ElButton>
+              <ElButton @click="forkMessenger(scope.row, true)">Edit</ElButton>
+              <PopConfirm
+                :on-confirm="() => deleteTempMessenger(scope.row)"
+                :title="`Delete '${getMessengerHref(scope.row.id)}' ?`">
+                <ElButton type="danger" plain>Delete</ElButton>
+              </PopConfirm>
+            </div>
+          </template>
+        </ElTableColumn>
+      </ElTable>
+    </section>
+
+    <!-- persisted messenger list -->
+    <section border border-b-none rounded-4 overflow-hidden>
+      <h2 border-b py10 text="bold 20 center"> Persisted Messengers </h2>
+      <ElTable :show-header="false" :data="persistedMessengerList" empty-text="No messengers yet.">
+        <ElTableColumn width="400px" :formatter="(row: Messenger) => getMessengerHref(row.id)" />
         <ElTableColumn show-overflow-tooltip :formatter="(row: Messenger) => row.meta.description || '-'" />
         <ElTableColumn width="200px">
           <template #default="scope">
             <div text-right>
-              <ElButton @click="copyToClipboard(getMessengerHref(scope.row.id))">
+              <ElButton @click="copy(getMessengerHref(scope.row.id))">
                 <div i-carbon:copy />
               </ElButton>
-              <ElButton @click="forkMessenger(scope.row)">fork</ElButton>
-              <!-- hide delete -->
-              <!-- <button class="ml-auto mr-10 btn btn--plain btn--danger" @click="deleteMessenger(messengerItem)">Delete</button> -->
+              <ElButton @click="forkMessenger(scope.row)">Fork</ElButton>
             </div>
           </template>
         </ElTableColumn>

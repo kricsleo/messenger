@@ -13,7 +13,7 @@ export default defineNuxtConfig({
         { charset: "utf-8" }
       ],
       link: [
-        { rel: 'icon', href: '/favico.svg' }
+        { rel: 'icon', href: '/favicon.svg' }
       ],
     }
   },

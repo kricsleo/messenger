@@ -8,6 +8,7 @@ interface Messenger {
     target: string | string[]
   }
   active?: boolean
+  temp?: boolean
 }
 
 interface Template {

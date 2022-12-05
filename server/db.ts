@@ -52,7 +52,7 @@ export async function loadExistedMessenger() {
   const fileKeys: string[] = await useStorage().getKeys('assets:server')
   const messengers = await Promise.all(fileKeys.map(async fileKey => {
     const raw = await useStorage().getItem(fileKey)
-    const id = fileKey.split(':').pop()!.split('.').pop()!
+    const id = fileKey.split(':').pop()!.split('.').shift()!
     const { transpiled, meta, runtime } = await rawMessenger2Runtime(raw)
     return { id, raw, transpiled, meta, runtime }
   }))
