@@ -1,10 +1,6 @@
-import { describe, expect, it, test } from 'vitest'
-import { transpile } from 'typescript'
-import fs from 'fs/promises'
-import path from 'path'
-import { transpileString } from '../utils/utils'
+import { expect, test } from 'vitest'
 import vm from 'vm'
-
+import { transpileString } from '../server/utils/utils';
 
 const messenger = {
   id: 'kricsleo',
@@ -17,21 +13,9 @@ const messenger = {
   target: 'unknown'
 }
 
-async function trans(code: string) {
-  const context = vm.createContext({
-    // code running context
-    print: console.log,
-  });
-
-  // @ts-expect-error experimental
-  const vmModule = new vm.SourceTextModule(code, { context })
-  await vmModule.link((specifier: string) => {
-    // forbidden using import
-    throw new Error(`"import" is forbidden: you are importing "${specifier}"`)
-  });
-  
-  await vmModule.evaluate()
-  return vmModule.namespace.default
+async function runtime(code: string) {
+  const result = vm.runInNewContext(code)
+  return result
 }
 
 test('utils', () => {
@@ -44,7 +28,7 @@ test('utils', () => {
     "
   `)
 
-  // expect(trans(transpileCode(messenger.code))).resolves.toMatchInlineSnapshot('[Function]')
+  expect(runtime(transpileString(messenger.code))).resolves.toMatchInlineSnapshot('[Function]')
 
   // expect((async() => {
   //   const runtime = await trans(transpileCode(messenger.code))

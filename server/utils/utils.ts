@@ -131,3 +131,31 @@ export function isValidHref(href: string) {
 }
 
 export const myNanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 4)
+
+export class RateControl {
+  rate: number
+  period: number
+  stack: Map<string, number>
+  cleanTimer: NodeJS.Timer | undefined
+  constructor(rate: number, period: number) {
+    this.rate = rate
+    this.period = period
+    this.stack = new Map<string, number>()
+  }
+  push(id: string) {
+    const currentRate = this.stack.get(id)
+    if(currentRate && currentRate > this.rate) {
+      throw new Error('Too frequently! Please decrease the rate.')
+    }
+    this.stack.set(id, (currentRate || 0) + 1)
+    if(!this.cleanTimer) {
+      this.autoClean()
+    }
+  }
+  autoClean() {
+    this.cleanTimer = setTimeout(() => {
+      this.stack = new Map<string, number>()
+      this.cleanTimer = undefined
+    }, this.period)
+  }
+}
