@@ -1,4 +1,4 @@
-import { H3Event } from 'h3'
+import { H3Event, isError, createError } from 'h3'
 import ts from 'typescript'
 import vm from 'vm'
 import { customAlphabet } from 'nanoid'
@@ -19,6 +19,9 @@ export function fail(msg: string): Result<undefined> {
   }
 }
 
+/**
+ * TODO: PREFER HTTP STATUS CODE
+ */
 export function defineAnswer(fn: (event: H3Event) => any) {
   return defineEventHandler(async (event: H3Event) => {
     try {
@@ -27,7 +30,11 @@ export function defineAnswer(fn: (event: H3Event) => any) {
       return success(result) as any;
     } catch(e:any) {
       debug.error('Server error', event.node.req.url, e);
-      return fail(e?.message || 'unknown error')
+      if(isError(e)) {
+        sendError(event, e)
+      } else {
+        return fail(e?.message || 'unknown error')
+      }
     }
   })
 }
@@ -100,17 +107,33 @@ export async function deliverMessage(messenger: Pick<Messenger, 'meta' | 'runtim
   const delivered = messenger.runtime(message)
   const {target} = messenger.meta
   let reply
-  // todo: detect target loop
   if(typeof target === 'string') {
     reply = await $fetch(target, { 
       method: 'POST', 
       body: delivered
+    }).catch(e => {
+      throw createError({
+        // Bad Gateway
+        statusCode: 502,
+        statusMessage: `Undelivered: ${e.message}`,
+      })
     })
   } else {
+    let failed = 0
     reply = await Promise.all(target.map(href => $fetch(href, { 
       method: 'POST', 
       body: delivered
-    }).catch(e => `${href} replyed error: ${e.message}`)))
+    }).catch(e => {
+      failed++
+      return `${href} replyed error: ${e.message}`
+    })))
+    if(failed === target.length) {
+      throw createError({
+        // Bad Gateway
+        statusCode: 502,
+        statusMessage: 'Undelivered',
+      })
+    }
   }
   return {
     message,
@@ -145,7 +168,10 @@ export class RateControl {
   push(id: string) {
     const currentRate = this.stack.get(id)
     if(currentRate && currentRate > this.rate) {
-      throw new Error('Too frequently! Please decrease the rate.')
+      throw createError({
+        statusCode: 429,
+        statusMessage: 'Limited',
+      })
     }
     this.stack.set(id, (currentRate || 0) + 1)
     if(!this.cleanTimer) {
