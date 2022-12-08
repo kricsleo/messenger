@@ -3,22 +3,6 @@ import ts from 'typescript'
 import vm from 'vm'
 import { customAlphabet } from 'nanoid'
 
-/** Successful response */
-export function success<T = any>(data?: T): Result<T> {
-  return {
-    c: 0,
-    d: data
-  }
-}
-
-/** Failed response */
-export function fail(msg: string): Result<undefined> {
-  return {
-    c: -1,
-    m: msg
-  }
-}
-
 /**
  * TODO: PREFER HTTP STATUS CODE
  */
@@ -27,14 +11,11 @@ export function defineAnswer(fn: (event: H3Event) => any) {
     try {
       const result = await fn(event);
       debug.log('Server answerd', event.node.req.url);
-      return success(result) as any;
+      return result;
     } catch(e:any) {
       debug.error('Server error', event.node.req.url, e);
-      if(isError(e)) {
-        sendError(event, e)
-      } else {
-        return fail(e?.message || 'unknown error')
-      }
+      const serverError = isError(e) ? e : createServerError(e.message, 500)
+      sendError(event, serverError)
     }
   })
 }
@@ -63,7 +44,7 @@ export async function string2Runtime(str: string) {
       // for security:
       // "import" is forbidden
       // "require" is also undefined
-      throw new Error(`"import" is forbidden: you are importing "${specifier}"`)
+      throw createServerError(`"import" is forbidden: you are importing "${specifier}"`)
     });
     await vmModule.evaluate()
     return vmModule.namespace
@@ -76,47 +57,40 @@ export async function string2Runtime(str: string) {
 
 export async function rawMessenger2Runtime(raw: string) {
   const transpiledCode = transpileString(raw)
-  const runtime: { default: Messenger['runtime']; meta: Messenger['meta'] } = await string2Runtime(transpiledCode)
+  const runtime: { default: Runtime; meta: Messenger['meta'] } = await string2Runtime(transpiledCode)
   // only use default export
   if(!runtime.default || typeof runtime.default !== 'function') {
-    throw new Error('You must export a "default" function')
+    throw createServerError('A "default" function should be exported')
   }
-  // validte meta info
-  if(!runtime.meta || typeof runtime.meta !== 'object') {
-    throw new Error('You must export a "meta" object describing messenger info')
+  return {
+    transpiled: transpiledCode,
+    meta: runtime.meta as Messenger['meta'],
+    runtime: runtime.default.bind(null) as Runtime
   }
-  const { target, description } = runtime.meta
+}
+
+export function validateTarget(target?: string | string[] | null) {
+  if(!target) {
+    return 'Missing "target"'
+  }
   const isValidTarget = 
     typeof target === 'string' ? isValidHref(target)
     : Array.isArray(target) ? target.every(href => isValidHref(href))
       : false
   if(!isValidTarget) {
-    throw new Error('"target" must a valid href or an array of it')
-  }
-  if(description && typeof description !== 'string') {
-    throw new Error('"description" must a string')
-  }
-  return {
-    transpiled: transpiledCode,
-    meta: runtime.meta as Messenger['meta'],
-    runtime: runtime.default.bind(null) as (this: null, v: any) => any
+    return '"target" must a valid href starts with "http(s)://" or an array of it'
   }
 }
 
-export async function deliverMessage(messenger: Pick<Messenger, 'meta' | 'runtime'>, message: Pair) {
-  const delivered = messenger.runtime(message)
-  const {target} = messenger.meta
+export async function deliverMessage(runtime: Runtime, target: string | string[], message: Pair) {
+  const delivered = runtime(message)
   let reply
   if(typeof target === 'string') {
     reply = await $fetch(target, { 
       method: 'POST', 
       body: delivered
     }).catch(e => {
-      throw createError({
-        // Bad Gateway
-        statusCode: 502,
-        statusMessage: `Undelivered: ${e.message}`,
-      })
+      throw createServerError(`Undelivered: ${e.message}`, 500)
     })
   } else {
     let failed = 0
@@ -125,14 +99,10 @@ export async function deliverMessage(messenger: Pick<Messenger, 'meta' | 'runtim
       body: delivered
     }).catch(e => {
       failed++
-      return `${href} replyed error: ${e.message}`
+      return e
     })))
     if(failed === target.length) {
-      throw createError({
-        // Bad Gateway
-        statusCode: 502,
-        statusMessage: 'Undelivered',
-      })
+      throw createServerError(`Undelivered: all failed, ${(reply[0] as Error).message}`, 500)
     }
   }
   return {
@@ -168,10 +138,7 @@ export class RateControl {
   push(id: string) {
     const currentRate = this.stack.get(id)
     if(currentRate && currentRate > this.rate) {
-      throw createError({
-        statusCode: 429,
-        statusMessage: 'Limited',
-      })
+      throw createServerError('Too many requests', 429)
     }
     this.stack.set(id, (currentRate || 0) + 1)
     if(!this.cleanTimer) {
@@ -184,4 +151,12 @@ export class RateControl {
       this.cleanTimer = undefined
     }, this.period)
   }
+}
+
+export function createServerError(message: string, httpCode: number = 400) {
+  return createError({
+    statusCode: httpCode,
+    statusMessage: message,
+    message,
+  })
 }

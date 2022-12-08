@@ -1,8 +1,8 @@
 import { ElMessage } from 'element-plus'
 
 /**
- * 封装异步状态
- * (@vue/core 提供的 useAsyncState 存在异步竞态的问题)
+ * Handling "Async Race Conditions"
+ * Better than "useAsyncState" from "@vue/core"
  */
  interface UseAsyncOptions {
   /** @default true */
@@ -74,18 +74,10 @@ export function useAsync<Data>(
 
 export const myFetch = $fetch.create({
   onRequestError({ error }) {
-    ElMessage.error(error.message) 
+    ElMessage.error(error.message || 'Unknown client error') 
   },
-  async onResponse({ response }) {
-    const data = response._data
-    if(data?.c !== 0) {
-      ElMessage.error(data?.m || 'Unknown error')  
-      return Promise.reject(response)
-    }
-    response._data = data.d
-  },
-  onResponseError({ error }) {
-    ElMessage.error(error?.message || 'Unknown error')
+  onResponseError(config) {
+    ElMessage.error(config.response.statusText || 'Unknown server error')
   },
 })
 

@@ -1,8 +1,11 @@
+type Runtime = (...args: any) => any
+type Target = string | string[]
+
 interface Messenger {
   id: string
   raw: string
   transpiled: string
-  runtime: (...args: any) => any
+  runtime: Runtime
   meta: {
     description?: string
     target: string | string[]
@@ -14,12 +17,6 @@ interface Messenger {
 interface Template {
   id: string
   raw: string
-}
-
-interface Result<T = any> {
-  c: number
-  m?: string
-  d?: T
 }
 
 type Pair<T = any> = Record<string, T>

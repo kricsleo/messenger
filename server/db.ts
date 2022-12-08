@@ -49,6 +49,10 @@ export function createMessengerId(): string {
   }
 }
 
+/**
+ * loading file assets
+ * @see [Assets Handling](https://nitro.unjs.io/guide/introduction/assets)
+ */
 export async function loadServerAssets(path: string) {
   const fileKeys: string[] = await useStorage().getKeys(path)
   const assets = await Promise.all(fileKeys.map(async fileKey => {

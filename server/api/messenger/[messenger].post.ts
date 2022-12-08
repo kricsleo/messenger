@@ -1,5 +1,5 @@
 import { getActiveMessenger } from '~~/server/db'
-import { defineAnswer, deliverMessage, RateControl } from '~~/server/utils/utils'
+import { createServerError, defineAnswer, deliverMessage, RateControl, validateTarget } from '~~/server/utils/utils'
 
 /** 
  * In case of "network storm" caused by a loop: A -> B -> C -> A -> B ...,
@@ -10,12 +10,17 @@ import { defineAnswer, deliverMessage, RateControl } from '~~/server/utils/utils
 /** Call Messenger to deliver message */
 export default defineAnswer(async event => {
   const body = await readBody(event)
+  const query = getQuery(event)
+  const targetInvalidMsg = validateTarget(query.target)
+  if(targetInvalidMsg) {
+    throw createServerError(targetInvalidMsg)
+  }
   const messengerId = event.context.params.messenger as string
   const messenger = await getActiveMessenger(messengerId)
   if(!messenger) {
-    throw new Error('Messenger not found')
+    throw createServerError('Messenger not found', 404)
   }
   messengerRateControl.push(messenger.id)
-  const result  = await deliverMessage(messenger, body)
+  const result  = await deliverMessage(messenger.runtime, query.target as Target, body)
   return result
 })

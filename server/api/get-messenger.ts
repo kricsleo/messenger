@@ -1,12 +1,12 @@
 import { messengerCache } from '~~/server/db'
-import { defineAnswer } from '../utils/utils'
+import { createServerError, defineAnswer } from '../utils/utils'
+import { omit } from 'lodash-es'
 
 export default defineAnswer(async event => {
   const messengerId = getQuery(event).id as string
   const messenger = messengerCache.get(messengerId)
   if(!messenger) {
-    throw new Error('messenger not exist')
+    throw createServerError('Messenger not exist')
   }
-  const { runtime, ...rest } = messenger
-  return rest
+  return omit(messenger, 'runtime')
 })
