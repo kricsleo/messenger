@@ -1,52 +1,18 @@
 <script setup lang="ts">
-import { Codemirror } from 'vue-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
-import { oneDark } from '@codemirror/theme-one-dark'
 import copyToClipboard from 'copy-to-clipboard';
-import { ElButton, ElMessage, ElTable, ElTableColumn } from 'element-plus'
+import { ElButton, ElMessage, ElTable, ElTableColumn, ElInput } from 'element-plus'
 import { useLocalStorage } from '@vueuse/core';
-
-const jsExtentions = [
-  javascript({ typescript: true }),
-  oneDark
-].filter(Boolean)
-const jsonExtension = [
-  javascript(),
-  oneDark,
-]
+import Editor from '~~/components/Editor.vue';
+import { ref, computed, onMounted } from 'vue';
+import { useAsync, myFetch } from '~~/utils/utils';
+import Button from '~~/components/Button.vue';
+import MessengerList from '~~/components/MessengerList.vue'
 
 const messengerPrefix = ref('')
-const templateMessengerCode = `
-/** export messenger meta info */
-interface Meta {
-  /** description of messenger */
-  description?: string
-  /** target href of messenger */
-  target: string | string[]
-}
-export const meta: Meta = {
-  description: 'Bonjour!',
-  target: ''
-}
-
-/** export default transformer function to transform message between the trigger and the receiver */
-interface Message {
-
-}
-interface Delivered {
-
-}
-export default function transformer(message: Message): Delivered {
-  return {
-    
-  }
-}
-
-`
 
 const editorContent = ref<HTMLDivElement>()
 const tempMessengerId = ref()
-const messengerCode = useLocalStorage('messengerCode', templateMessengerCode)
+const messengerCode = useLocalStorage('messengerCode', '')
 const testData = useLocalStorage('testData', `{}`)
 const messageReply = ref()
 
@@ -55,11 +21,6 @@ const messengerListState = useAsync<Messenger[]>(
   []
 )
 const tempMessengerList = computed(() => messengerListState.data.filter(messenger => messenger.temp))
-const persistedMessengerList = computed(() => messengerListState.data.filter(messenger => !messenger.temp))
-
-const templateListState = useAsync<Template[]>(
-  () => myFetch('/api/get-all-templates').then(result => result.templates),
-)
 
 onMounted(() => {
   messengerPrefix.value = `${window.location.origin}/api/messenger/`
@@ -110,12 +71,6 @@ function copy(text: string) {
   ElMessage.success('Copied!')
 }
 
-function forkMessenger(messenger: Messenger) {
-  messengerCode.value = messenger.raw
-  ElMessage.success('Forked to edidor!')
-  editorContent.value?.scrollIntoView({behavior: 'smooth'})
-}
-
 function editMessenger(messenger: Messenger) {
   messengerCode.value = messenger.raw
   tempMessengerId.value = messenger.id
@@ -129,32 +84,27 @@ function getMessengerHref(messengerId: string) {
 </script>
 
 <template>
-  <section text-dark max-w-1000 mx-auto py20 space-y-30>
+  <section max-w-1000 mx-auto py-20 space-y-30>
 
     <!-- edidor -->
     <section ref="editorContent" border rounded-4>
-      <h2 relative border-b py10 text="bold 20 center">
-        Messenger Editor
+      <h2 border-b p-10 text="bold 20">
+        Editor
         <span text-gray>(JS/TS)</span>
-        <ElButton class="!absolute right-10" type="primary" plain @click="(messengerCode = templateMessengerCode)">Reset</ElButton>
       </h2>
-      <Codemirror 
+      <Editor
         v-model="messengerCode"
         placeholder="messenger code goes here..."
-        :style="{height: '600px', width: '100%'}"
+        :style="{height: '650px'}"
         :autofocus="true"
-        :indent-with-tab="true"
-        :tab-size="2"
-        :extensions="jsExtentions"
-        text-16
-      />
+        text-16 />
     </section>
 
     <!-- playground -->
     <section border rounded-4>
-      <h2 relative border-b py10 text="bold 20 center">
-        Messenger Playground
-        <Button class="!absolute right-10" type="primary" plain :onClick="triggerTest">Run Test</Button>
+      <h2 border-b p-10 text="bold 20" flex justify-between>
+        Playground
+        <Button type="primary" plain :onClick="triggerTest">Run Test</Button>
       </h2>
       <div flex justify-between px20 pb-20>
         <div :style="{width: '49%'}" shrink-0>
@@ -162,26 +112,20 @@ function getMessengerHref(messengerId: string) {
             Test Data: 
             <span class="text-gray">(JSON format)</span>
           </div>
-          <Codemirror 
+          <Editor 
             v-model="testData"
             placeholder="Test data goes here..."
             :style="{height: '400px'}"
-            :indent-with-tab="true"
-            :tab-size="2"
-            :extensions="jsonExtension"
             text-16
           />
         </div>
         <div :style="{width: '49%'}" shrink-0>
           <div text-16 py10> Reply: </div>
-          <Codemirror 
+          <Editor 
             :model-value="JSON.stringify(messageReply, null, 2)"
             placeholder="Test data replyed here"
             disabled
             :style="{height: '400px'}"
-            :indent-with-tab="true"
-            :tab-size="2"
-            :extensions="jsonExtension"
             text-16
           />
         </div>
@@ -189,14 +133,14 @@ function getMessengerHref(messengerId: string) {
     </section>
 
       <!-- temp messenger list -->
-    <section border border-b-none rounded-4 overflow-hidden>
-      <h2 relative border-b py10 text="bold 20 center rose"> 
-        Temporay Messengers (Test only)
-        <Button class="!absolute right-10" type="primary" plain :onClick="saveTempMessenger">Save Temporary Messenger</Button>
+    <section border rounded-4>
+      <h2 border-b p-10 text="bold 20 rose" flex justify-between> 
+        Temporay Messengers (Got lost when server restarted)
+        <Button type="primary" plain :onClick="saveTempMessenger">Save Temporary Messenger</Button>
       </h2>
       <ElTable :show-header="false" :data="tempMessengerList" empty-text="No temporary messengers yet.">
         <ElTableColumn width="400px" :formatter="(row: Messenger) => getMessengerHref(row.id)" />
-        <ElTableColumn show-overflow-tooltip :formatter="(row: Messenger) => row.meta.description || '-'" />
+        <ElTableColumn show-overflow-tooltip :formatter="(row: Messenger) => row.meta?.description || '-'" />
         <ElTableColumn width="250px">
           <template #default="scope">
             <div text-right>
@@ -215,39 +159,10 @@ function getMessengerHref(messengerId: string) {
       </ElTable>
     </section>
 
-    <!-- persisted messenger list -->
-    <section border border-b-none rounded-4 overflow-hidden>
-      <h2 border-b py10 text="bold 20 center"> Persisted Messengers </h2>
-      <ElTable :show-header="false" :data="persistedMessengerList" empty-text="No messengers yet.">
-        <ElTableColumn width="400px" :formatter="(row: Messenger) => getMessengerHref(row.id)" />
-        <ElTableColumn show-overflow-tooltip :formatter="(row: Messenger) => row.meta.description || '-'" />
-        <ElTableColumn width="200px">
-          <template #default="scope">
-            <div text-right>
-              <ElButton @click="copy(getMessengerHref(scope.row.id))">
-                <div i-carbon:copy />
-              </ElButton>
-              <ElButton @click="forkMessenger(scope.row)">Fork</ElButton>
-            </div>
-          </template>
-        </ElTableColumn>
-      </ElTable>
-    </section>
-
-    <!-- templates -->
+    <!-- messenger list -->
     <section border rounded-4>
-      <h2 border-b py10 text="bold 20 center"> Templates </h2>
-      <ElTable :show-header="false" :data="templateListState.data" empty-text="No templates yet.">
-        <ElTableColumn :formatter="(row: Template) => row.id" />
-        <ElTableColumn width="200px">
-          <template #default="scope">
-            <div text-right>
-              <ElButton @click="forkMessenger(scope.row)">Fork</ElButton>
-            </div>
-          </template>
-        </ElTableColumn>
-      </ElTable>
+      <h2 border-b p-10 text="bold 20"> Messengers </h2>
+      <MessengerList />
     </section>
-
   </section>
 </template>

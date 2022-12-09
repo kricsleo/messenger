@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ElIcon, ElTooltip, popconfirmProps, ElButton, TooltipInstance } from 'element-plus';
-import { PropType } from 'vue';
+import { computed, PropType, ref } from 'vue';
+import { useAsync } from '~~/utils/utils';
 
 const props = defineProps({
   ...popconfirmProps,

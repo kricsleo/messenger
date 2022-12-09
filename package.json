@@ -17,6 +17,7 @@
     "@unocss/nuxt": "^0.46.5",
     "@unocss/preset-rem-to-px": "^0.46.5",
     "@unocss/reset": "^0.46.5",
+    "unocss-preset-scrollbar": "^0.2.1",
     "unplugin-element-plus": "^0.4.1",
     "vitest": "^0.25.3"
   },

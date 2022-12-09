@@ -14,6 +14,7 @@ export default defineConfig({
       scale: 1.2,
       warn: true,
     }),
+    // 1 unit = 1px
     presetRemToPx({ baseFontSize: 4 }),
   ],
   shortcuts: [

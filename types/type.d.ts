@@ -6,9 +6,8 @@ interface Messenger {
   raw: string
   transpiled: string
   runtime: Runtime
-  meta: {
+  meta?: {
     description?: string
-    target: string | string[]
   }
   active?: boolean
   temp?: boolean

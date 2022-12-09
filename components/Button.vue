@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ElButton } from 'element-plus';
+import { ElButton, useAttrs } from 'element-plus';
+import { ref } from 'vue';
 
 const props = defineProps<{
   onClick: () => Promise<any>
 }>()
 const attrs = useAttrs()
-
 const loading = ref(false)
 
 async function handleClick() {
