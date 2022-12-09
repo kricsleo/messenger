@@ -24,7 +24,6 @@ const extentions = [
   <div relative>
     <Codemirror
       class="editor"
-      :autofocus="true"
       :indent-with-tab="true"
       :tab-size="2"
       :extensions="extentions"

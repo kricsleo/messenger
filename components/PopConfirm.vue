@@ -34,7 +34,7 @@ const handleConfirm = async (e: Event) => {
     :hide-after="0"
     :fallback-placements="['bottom', 'top', 'right', 'left']">
     <template #content>
-      <div class="el-popconfirm__main flex items-center">
+      <div class="el-popconfirm__main flex items-center py-10">
         <ElIcon v-if="!props.hideIcon && props.icon" class="el-popconfirm__icon mr-5" :style="{ color: iconColor }">
           <component :is="props.icon" />
         </ElIcon>

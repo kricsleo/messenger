@@ -7,24 +7,25 @@ import Editor from './Editor.vue';
 const app = useNuxtApp()
 app.vueApp.use(ElLoading)
 
+const props = defineProps<{
+  fetcher: () => Promise<{messengers: Messenger[]}>
+}>()
 defineExpose({
   reload: () => state.execute()
 })
-const state = useAsync(async () => {
-  const result = await myFetch(`/api/get-all-messengers`)
-  return result.messengers
-})
+
+const state = useAsync(props.fetcher, null, { immediate: true})
 const location = useBrowserLocation()
 </script>
 
 <template>
-  <ElTable v-loading="state.loading" :data="state.data || []" class="table">
+  <ElTable v-loading="state.loading" :data="state.data?.messengers" class="table" :show-header="false" empty-text="No messengers">
     <ElTableColumn type="expand">
       <template #default="{ row }: {row: Messenger}">
         <Editor :modelValue="row.raw" disabled copyable />
       </template>
     </ElTableColumn>
-    <ElTableColumn label="address">
+    <ElTableColumn label="address" width="500px">
       <template #default="{row}: {row: Messenger}">
         <div flex items-center>
           {{`${location.origin}/api/messenger/${row.id}`}}
@@ -32,7 +33,8 @@ const location = useBrowserLocation()
         </div>
       </template>
     </ElTableColumn>
-    <ElTableColumn label="description" width="400px" show-overflow-tooltip :formatter="(row: Messenger) => row.meta?.description || '-'" />
+    <ElTableColumn label="description" show-overflow-tooltip :formatter="(row: Messenger) => row.meta?.description || '-'" />
+    <slot />
   </ElTable>
 </template>
 
