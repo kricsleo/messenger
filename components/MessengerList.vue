@@ -16,10 +16,23 @@ defineExpose({
 
 const state = useAsync(props.fetcher, null, { immediate: true})
 const location = useBrowserLocation()
+const expandKeys = ref<string[]>([])
+
+function handleExpand(row: Messenger, expandRows: Messenger[]) {
+  expandKeys.value = expandRows.map(row => row.id)
+}
 </script>
 
 <template>
-  <ElTable v-loading="state.loading" :data="state.data?.messengers" class="table" :show-header="false" empty-text="No messengers">
+  <ElTable 
+    v-loading="state.loading" 
+    :data="state.data?.messengers" 
+    class="table" 
+    :show-header="false" 
+    empty-text="No messengers"
+    :expandRowKeys="expandKeys"
+    row-key="id"
+    @expandChange="handleExpand">
     <ElTableColumn type="expand">
       <template #default="{ row }: {row: Messenger}">
         <Editor :modelValue="row.raw" disabled copyable />
