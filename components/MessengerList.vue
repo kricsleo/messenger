@@ -38,15 +38,15 @@ function handleExpand(row: Messenger, expandRows: Messenger[]) {
         <Editor :modelValue="row.raw" disabled copyable />
       </template>
     </ElTableColumn>
-    <ElTableColumn label="address" width="500px">
+    <ElTableColumn label="Href" width="500px">
       <template #default="{row}: {row: Messenger}">
         <div flex items-center>
           {{`${location.origin}/api/messenger/${row.id}`}}
-          <CopyBtn :modelValue="`${location.origin}/api/messenger/${row.id}`" tip="Copy address" />
+          <CopyBtn :modelValue="`${location.origin}/api/messenger/${row.id}`" tip="Copy href" />
         </div>
       </template>
     </ElTableColumn>
-    <ElTableColumn label="description" show-overflow-tooltip :formatter="(row: Messenger) => row.meta?.description || '-'" />
+    <ElTableColumn label="Description" show-overflow-tooltip :formatter="(row: Messenger) => row.meta?.description || '-'" />
     <slot />
   </ElTable>
 </template>

@@ -38,16 +38,16 @@ async function triggerTest() {
       Playground
       <Button type="primary" plain :onClick="triggerTest">Run Test</Button>
     </h2>
-    <div p-20 pb-0 flex items-center>
+    <div p-20 flex items-center>
       <span mr-20>Target:</span>
       <ElInput v-model="target" clearable placeholder="please input target href" />
     </div>
-    <div flex justify-between px20 pb-20>
-      <div :style="{width: '49%'}" shrink-0>
-        <div text-16 py10> 
+    <div grid="~ cols-2" overflow-hidden>
+      <div border-r overflow-auto>
+        <!-- <div text-16 py10> 
           Test Data: 
           <span class="text-gray">(JSON format)</span>
-        </div>
+        </div> -->
         <Editor 
           v-model="testData"
           placeholder="Test data goes here..."
@@ -55,8 +55,8 @@ async function triggerTest() {
           text-16
         />
       </div>
-      <div :style="{width: '49%'}" shrink-0>
-        <div text-16 py10> Reply: </div>
+      <div overflow-auto>
+        <!-- <div text-16 py10> Reply: </div> -->
         <Editor 
           :model-value="JSON.stringify(messageReply, null, 2)"
           placeholder="Test data replyed here"

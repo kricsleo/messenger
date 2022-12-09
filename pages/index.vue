@@ -8,11 +8,13 @@ import Button from '~~/components/Button.vue';
 import MessengerList from '~~/components/MessengerList.vue'
 import Playground from '~~/components/Playground.vue';
 import PopConfirm from '~~/components/PopConfirm.vue';
+import CopyBtn from '~~/components/CopyBtn.vue';
 
 const editorContent = ref<HTMLDivElement>()
 const tempMessengerId = ref()
 const messengerCode = useLocalStorage('messengerCode', '')
 const tempMessengerList = ref()
+const tempMessengerHref = useMessengerHref(tempMessengerId)
 
 async function saveTempMessenger() {
   const { id } = await myFetch(`/api/save-temp-messenger`, {
@@ -49,10 +51,18 @@ function editMessenger(messenger: Messenger) {
 
     <!-- edidor -->
     <section ref="editorContent" border rounded-4>
-      <h2 border-b p-10 text="bold 20">
-        Editor
-        <span text-gray>(JS/TS)</span>
-      </h2>
+      <div border-b p-10 grid="~ cols-[1fr_2fr_1fr]">
+        <div text="bold 20" justify-self-start>
+          Editor <span text-gray>(JS/TS)</span>
+        </div>
+        <div justify-self-center flex items-center>
+          {{tempMessengerHref}}
+          <CopyBtn v-if="tempMessengerHref" :modelValue="tempMessengerHref" tip="Copy href" />
+        </div>
+        <Button type="primary" plain :onClick="saveTempMessenger" class="justify-self-end">
+          {{tempMessengerId ? 'Update' : 'Save as Temporary Messenger'}}
+        </Button>
+      </div>
       <Editor
         v-model="messengerCode"
         autofocus
@@ -66,8 +76,7 @@ function editMessenger(messenger: Messenger) {
       <!-- temp messenger list -->
     <section border rounded-4>
       <h2 border-b p-10 text="bold 20 rose" flex justify-between> 
-        Temporay Messengers (Got lost when server restarted)
-        <Button type="primary" plain :onClick="saveTempMessenger">Save as Temporary Messenger</Button>
+        Messengers for test only (Got lost when server restarted)
       </h2>
       <MessengerList ref="tempMessengerList" :fetcher="() => myFetch('/api/get-temp-messengers')">
         <ElTableColumn width="250px">
