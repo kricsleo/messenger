@@ -10,7 +10,7 @@ import Header from './components/Header.vue';
   <div font-sans text="gray-700 dark:gray-200" dark:bg-dark>
     <Header />
     <NuxtLayout>
-      <main max-w-1000 mx-auto py-20 normalize-scroll box-content>
+      <main max-w-1024 mx-auto py-20 normalize-scroll box-content>
         <NuxtPage keepalive />
       </main>
     </NuxtLayout>

@@ -39,15 +39,15 @@ function editMessenger(messenger: Messenger) {
   <section space-y-50>
     <!-- edidor -->
     <section ref="editorContent" border rounded-4>
-      <div border-b p-10 grid="~ cols-[1fr_1fr_1fr]">
+      <div border-b p-10 grid="~ cols-[1fr_1fr_1fr]" items-center>
         <div text="bold 20" justify-self-start>
           Editor <span text-gray>(JS/TS)</span>
         </div>
-        <div justify-self-center flex items-center>
+        <div flex items-center>
           {{tempMessengerHref}}
           <CopyBtn v-if="tempMessengerHref" :modelValue="tempMessengerHref" tip="Copy href" />
         </div>
-        <div justify-self-end>
+        <div text-right>
           <Button type="primary" plain :onClick="saveTempMessenger">
             {{tempMessengerId ? 'Update' : 'Save'}}
           </Button>
@@ -66,7 +66,7 @@ function editMessenger(messenger: Messenger) {
 
     <ClientOnly>
       <ElDrawer v-model="drawerVisible" size="820px" :withHeader="false">
-        <TempMessengerList @edit="editMessenger" />
+        <TempMessengerList ref="tempMessengerList" @edit="editMessenger" />
       </ElDrawer>
     </ClientOnly>
   </section>

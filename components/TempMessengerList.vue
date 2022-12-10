@@ -3,11 +3,14 @@ import { ElMessage, ElTableColumn, ElLink } from 'element-plus';
 import MessengerList from './MessengerList.vue';
 import PopConfirm from './PopConfirm.vue';
 
+defineExpose({
+  reload: () => messengerList.value.reload()
+})
 const emits = defineEmits<{
   (e: 'edit', v: Messenger): void
 }>()
 
-const tempMessengerList = ref()
+const messengerList = ref()
 
 async function deleteTempMessenger(messenger: Messenger) {
   await myFetch(`/api/delete-temp-messenger`, {
@@ -15,7 +18,7 @@ async function deleteTempMessenger(messenger: Messenger) {
     body: messenger
   })
   ElMessage.success('Temporary messenger deleted!')
-  tempMessengerList.value.reload()
+  messengerList.value.reload()
 }
 </script>
 
@@ -24,7 +27,7 @@ async function deleteTempMessenger(messenger: Messenger) {
     <h2 border-b p-10 text="bold 20 rose" flex justify-between> 
       Messengers for test only (Got lost when server restarted)
     </h2>
-    <MessengerList ref="tempMessengerList" :fetcher="() => myFetch('/api/get-temp-messengers')">
+    <MessengerList ref="messengerList" :fetcher="() => myFetch('/api/get-temp-messengers')">
       <ElTableColumn width="100">
         <template #default="scope">
           <div text-right whitespace-nowrap>
