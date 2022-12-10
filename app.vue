@@ -11,7 +11,7 @@ import Header from './components/Header.vue';
     <Header />
     <NuxtLayout>
       <main max-w-1000 mx-auto py-20 normalize-scroll box-content>
-        <NuxtPage />
+        <NuxtPage keepalive />
       </main>
     </NuxtLayout>
   </div>
