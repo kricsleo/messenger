@@ -23,5 +23,8 @@ export default defineConfig({
     ['x-center', 'flex justify-center'],
     ['x-between', 'flex justify-between'],
     ['y-center', 'flex items-center'],
+  ],
+  rules: [
+    ['normalize-scroll', {'padding-left': 'calc(100vw - 100%)'}]
   ]
 })

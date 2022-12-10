@@ -35,7 +35,7 @@ async function triggerTest() {
 <template>
   <section border rounded-4>
     <h2 border-b p-10 text="bold 20" flex justify-between>
-      Playground
+      Tester
       <Button type="primary" plain :onClick="triggerTest">Run Test</Button>
     </h2>
     <div p-20 flex items-center>
@@ -50,7 +50,7 @@ async function triggerTest() {
         </div> -->
         <Editor 
           v-model="testData"
-          placeholder="Test data goes here..."
+          placeholder="Mock json data goes here..."
           :style="{height: '400px'}"
           text-16
         />
@@ -59,7 +59,7 @@ async function triggerTest() {
         <!-- <div text-16 py10> Reply: </div> -->
         <Editor 
           :model-value="JSON.stringify(messageReply, null, 2)"
-          placeholder="Test data replyed here"
+          placeholder="Messenger replyed here"
           disabled
           :style="{height: '400px'}"
           text-16

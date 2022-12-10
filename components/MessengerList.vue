@@ -3,6 +3,7 @@ import { useBrowserLocation } from '@vueuse/core';
 import { ElTableColumn, ElLoading, ElTable } from 'element-plus';
 import CopyBtn from './CopyBtn.vue';
 import Editor from './Editor.vue';
+import TipText from './TipText.vue';
 
 const app = useNuxtApp()
 app.vueApp.use(ElLoading)
@@ -17,6 +18,7 @@ defineExpose({
 const state = useAsync(props.fetcher, null, { immediate: true})
 const location = useBrowserLocation()
 const expandKeys = ref<string[]>([])
+const tooltipEffect = computed(() => isDark.value ? 'dark' : 'light')
 
 function handleExpand(row: Messenger, expandRows: Messenger[]) {
   expandKeys.value = expandRows.map(row => row.id)
@@ -27,26 +29,31 @@ function handleExpand(row: Messenger, expandRows: Messenger[]) {
   <ElTable 
     v-loading="state.loading" 
     :data="state.data?.messengers" 
-    class="table" 
+    class="table !flex" 
     :show-header="false" 
     empty-text="No messengers"
     :expandRowKeys="expandKeys"
     row-key="id"
+    :tooltip-effect="tooltipEffect"
     @expandChange="handleExpand">
     <ElTableColumn type="expand">
       <template #default="{ row }: {row: Messenger}">
         <Editor :modelValue="row.raw" disabled copyable />
       </template>
     </ElTableColumn>
-    <ElTableColumn label="Href" width="500px">
+    <ElTableColumn>
       <template #default="{row}: {row: Messenger}">
-        <div flex items-center>
+        <div flex items-center whitespace-nowrap>
           {{`${location.origin}/api/messenger/${row.id}`}}
           <CopyBtn :modelValue="`${location.origin}/api/messenger/${row.id}`" tip="Copy href" />
         </div>
       </template>
     </ElTableColumn>
-    <ElTableColumn label="Description" show-overflow-tooltip :formatter="(row: Messenger) => row.meta?.description || '-'" />
+    <ElTableColumn 
+      label="Description"
+      width="300"
+      show-overflow-tooltip
+      :formatter="(row: Messenger) => row.meta?.description || '-'" />
     <slot />
   </ElTable>
 </template>

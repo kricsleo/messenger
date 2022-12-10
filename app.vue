@@ -7,12 +7,14 @@ import Header from './components/Header.vue';
 </script>
 
 <template>
-  <main font-sans text="gray-700 dark:gray-200" dark:bg-dark>
+  <div font-sans text="gray-700 dark:gray-200" dark:bg-dark>
     <Header />
     <NuxtLayout>
-      <NuxtPage/>
+      <main max-w-1000 mx-auto py-20 normalize-scroll box-content>
+        <NuxtPage />
+      </main>
     </NuxtLayout>
-  </main>
+  </div>
 </template>
 
 <style>
@@ -47,5 +49,9 @@ import Header from './components/Header.vue';
 }
 .dark * {
   border-color: rgba(229, 231, 235, 0.5)
+}
+
+html.dark {
+  background-color: #222222;
 }
 </style>
