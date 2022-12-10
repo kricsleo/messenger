@@ -1,13 +1,13 @@
 /** export messenger meta info */
 interface Meta {
+  /** author of messenger */
+  author: string
   /** description of messenger */
   description?: string
-  /** target href of messenger */
-  target: string | string[]
 }
 export const meta: Meta = {
+  author: 'kricsleo',
   description: 'Bonjour!',
-  target: ''
 }
 
 /** export default transformer function to transform message between the trigger and the receiver */

@@ -21,7 +21,6 @@ class MemoryCache<T> {
 
 /** memory messengers cache */
 export const messengerCache = new MemoryCache<Messenger>()
-export const templateCache = new MemoryCache<Template>()
 
 export async function getActiveMessenger(id: string): Promise<Messenger | null> {
   const messenger = messengerCache.get(id)
@@ -69,9 +68,4 @@ export async function loadExistedMessenger() {
     const messenger = await rawMessenger2Runtime(asset.raw)
     messengerCache.set(asset.id, { ...messenger, id: asset.id, raw: asset.raw })
   }))
-}
-
-export async function loadExistedTemplates() {
-  const templateAssets = await loadServerAssets('assets:server:templates')
-  templateAssets.forEach(asset => templateCache.set(asset.id, asset))
 }

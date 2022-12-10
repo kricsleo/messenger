@@ -7,15 +7,11 @@ interface Messenger {
   transpiled: string
   runtime: Runtime
   meta?: {
+    author?: string
     description?: string
   }
   active?: boolean
   temp?: boolean
-}
-
-interface Template {
-  id: string
-  raw: string
 }
 
 type Pair<T = any> = Record<string, T>

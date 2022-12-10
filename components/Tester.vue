@@ -25,10 +25,10 @@ async function triggerTest() {
     body: {
       raw: props.raw,
       message,
-      target,
+      target: target.value,
     }
   })
-  ElMessage.success('Test triggered')
+  ElMessage.success('Tester triggered')
 }
 </script>
 
@@ -39,30 +39,29 @@ async function triggerTest() {
       <Button type="primary" plain :onClick="triggerTest">Run Test</Button>
     </h2>
     <div p-20 flex items-center>
-      <span mr-20>Target:</span>
+      <span mr-30>Target:</span>
       <ElInput v-model="target" clearable placeholder="please input target href" />
     </div>
-    <div grid="~ cols-2" overflow-hidden>
-      <div border-r overflow-auto>
-        <!-- <div text-16 py10> 
-          Test Data: 
-          <span class="text-gray">(JSON format)</span>
-        </div> -->
+    <div grid="~ cols-2" overflow-hidden text-16>
+      <div overflow-auto>
+        <div pb-20 pl-20> 
+          Test Data
+          <span class="text-gray">(JSON format): </span>
+        </div>
         <Editor 
           v-model="testData"
           placeholder="Mock json data goes here..."
           :style="{height: '400px'}"
-          text-16
+          border-r
         />
       </div>
       <div overflow-auto>
-        <!-- <div text-16 py10> Reply: </div> -->
+        <div pb-20> Reply: </div>
         <Editor 
           :model-value="JSON.stringify(messageReply, null, 2)"
-          placeholder="Messenger replyed here"
+          placeholder="Test data replied"
           disabled
           :style="{height: '400px'}"
-          text-16
         />
       </div>
     </div>
