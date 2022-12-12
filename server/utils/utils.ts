@@ -3,9 +3,6 @@ import ts from 'typescript'
 import vm from 'vm'
 import { customAlphabet } from 'nanoid'
 
-/**
- * TODO: PREFER HTTP STATUS CODE
- */
 export function defineAnswer(fn: (event: H3Event) => any) {
   return defineEventHandler(async (event: H3Event) => {
     try {
@@ -37,7 +34,9 @@ export async function string2Runtime(str: string) {
   // @ts-expect-error experimental
   if(vm.SourceTextModule) {
     // running context
-    const context = vm.createContext({});
+    const context = vm.createContext({
+      JSON: JSON
+    });
     // @ts-expect-error experimental
     const vmModule = new vm.SourceTextModule(str, { context })
     await vmModule.link((specifier: string) => {
