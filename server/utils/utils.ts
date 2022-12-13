@@ -34,9 +34,7 @@ export async function string2Runtime(str: string) {
   // @ts-expect-error experimental
   if(vm.SourceTextModule) {
     // running context
-    const context = vm.createContext({
-      JSON: JSON
-    });
+    const context = vm.createContext({});
     // @ts-expect-error experimental
     const vmModule = new vm.SourceTextModule(str, { context })
     await vmModule.link((specifier: string) => {
