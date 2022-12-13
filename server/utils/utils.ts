@@ -46,7 +46,7 @@ export async function string2Runtime(str: string) {
     await vmModule.evaluate()
     return vmModule.namespace
   } else {
-    debug.warn(`"--experimental-vm-modules" is not enabled, fallback to "import" to compile module`)
+    debug.warn(`"--experimental-vm-modules" is not enabled, fallback to unsafe "import" to compile module`)
     const module = await import(`data:text/javascript;base64,${Buffer.from(str).toString('base64')}`)
     return module
   }
