@@ -81,6 +81,14 @@ export function validateTarget(target?: string | string[] | null) {
 
 export async function deliverMessage(runtime: Runtime, target: string | string[], message: Pair) {
   const delivered = runtime(message)
+  if(!delivered) {
+    return {
+      message,
+      delivered,
+      reply: null,
+      sent: false
+    }
+  }
   let reply
   if(typeof target === 'string') {
     reply = await $fetch(target, { 
@@ -105,7 +113,8 @@ export async function deliverMessage(runtime: Runtime, target: string | string[]
   return {
     message,
     delivered,
-    reply
+    reply,
+    sent: true
   }
 }
 
