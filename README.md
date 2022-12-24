@@ -1,5 +1,6 @@
 # Messenger
 
-Transform message from 'A' to 'B', works with HTTP communication.
+Transform message from 'A' to 'B' with JS/TS functions, works with HTTP communication.
 
-**[WIP]**
+[Online playground](https://messenger.kric.cc)
+
