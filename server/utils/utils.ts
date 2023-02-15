@@ -2,7 +2,8 @@ import { H3Event, isError, createError } from 'h3'
 import ts from 'typescript'
 import vm from 'vm'
 import { customAlphabet } from 'nanoid'
-
+import { format as formatTime } from 'date-fns'
+ 
 export function defineAnswer(fn: (event: H3Event) => any) {
   return defineEventHandler(async (event: H3Event) => {
     try {
@@ -119,9 +120,9 @@ export async function deliverMessage(runtime: Runtime, target: string | string[]
 }
 
 export const debug = {
-  error: (...args: any) => console.error(`[${new Date().toLocaleString()}]:`, ...args),
-  warn: (...args: any) => console.warn(`[${new Date().toLocaleString()}]:`, ...args),
-  log: (...args: any) => console.log(`[${new Date().toLocaleString()}]:`, ...args),
+  error: (...args: any) => console.error(`[${formatTime(new Date(), 'yyyy-MM-dd HH:mm:ss')}]:`, ...args),
+  warn: (...args: any) => console.warn(`[${formatTime(new Date(), 'yyyy-MM-dd HH:mm:ss')}]:`, ...args),
+  log: (...args: any) => console.log(`[${formatTime(new Date(), 'yyyy-MM-dd HH:mm:ss')}]:`, ...args),
 }
 
 export function isValidHref(href: string) {
