@@ -1,23 +1,4 @@
-import { rawMessenger2Runtime, myNanoid } from '../../utils/utils'
-
-class MemoryCache<T> {
-  private cache: Map<string, T>
-  constructor() {
-    this.cache = new Map()
-  }
-  get(id: string) {
-    return this.cache.get(id) ?? null
-  }
-  set(id: string, value: T) {
-    return this.cache.set(id, value)
-  }
-  remove(id: string) {
-    return this.cache.delete(id)
-  }
-  getAll() {
-    return [...this.cache.values()]
-  }
-}
+import { rawMessenger2Runtime, uuid, MemoryCache } from '../utils/utils'
 
 /** memory messengers cache */
 export const messengerCache = new MemoryCache<Messenger>()
@@ -39,7 +20,7 @@ export async function getActiveMessenger(id: string): Promise<Messenger | null> 
 }
 
 export function createMessengerId(): string {
-  const id = myNanoid()
+  const id = uuid()
   // if this id already existed, loop to find an avaliable one
   if(!messengerCache.get(id)) {
     return id
