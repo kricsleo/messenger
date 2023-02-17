@@ -6,7 +6,7 @@ import { useAsync } from '~~/utils/utils';
 const props = defineProps({
   ...popconfirmProps,
   onConfirm: {
-    type: Function as PropType<() => Promise<void>>,
+    type: Function as PropType<() => Promise<any>>,
     required: true,
   },
 });

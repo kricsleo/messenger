@@ -11,8 +11,7 @@ const props = defineProps<{
 const target = useLocalStorage('testTarget', '')
 const testData = useLocalStorage('testData', `{}`)
 const messageReply = ref()
-
-async function triggerTest() {
+const testState = useAsync(async () => {
   let message
   try {
     message = JSON.parse(testData.value)
@@ -20,7 +19,7 @@ async function triggerTest() {
     ElMessage.error('Test data is not a valid json')
     return
   }
-  messageReply.value = await myFetch(`/api/test-messenger`, {
+  messageReply.value = await $fetch(`/api/test-messenger`, {
     method: 'POST',
     body: {
       raw: props.raw,
@@ -29,14 +28,14 @@ async function triggerTest() {
     }
   })
   ElMessage.success('Tester triggered')
-}
+}, null, { immediate: false})
 </script>
 
 <template>
   <section border rounded-4>
     <h2 border-b p-10 text="bold 20" flex justify-between>
       Tester
-      <Button type="primary" plain :onClick="triggerTest">Run Test</Button>
+      <Button type="primary" plain :onClick="testState.execute">Run Test</Button>
     </h2>
     <div p-20 flex items-center>
       <span mr-30>Target:</span>

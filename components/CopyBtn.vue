@@ -8,18 +8,20 @@ const props = defineProps<{
 }>()
 const attrs = useAttrs()
 const copied = ref(false)
+const timer = ref()
 const innerTip = computed(() => copied.value ? 'Copied!' : props.tip || 'Copy' )
 
 function copy() {
   copyToClipboard(props.modelValue)
   copied.value = true
-  setTimeout(() => copied.value = false, 1500)
+  clearTimeout(timer.value)
+  timer.value = setTimeout(() => copied.value = false, 1500)
 }
 </script>
 
 <template>
-  <ElTooltip :content="innerTip" placement="right" effect="light">
-    <button @click="copy" v-bind="attrs" inline-block active:opacity-65 p-5>
+  <ElTooltip :content="innerTip" placement="top" effect="light" :hideAfter="0">
+    <button @click="copy" v-bind="attrs" inline-block opacity-65 hover:opacity-100 transition-opacity p-5>
       <div v-if="copied" i-carbon:checkmark />
       <div v-else i-carbon:copy />
     </button>

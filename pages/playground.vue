@@ -1,22 +1,20 @@
 <script setup lang="ts">
-import { ElButton, ElMessage, ElDrawer } from 'element-plus'
+import { ElButton, ElMessage } from 'element-plus'
 import { useLocalStorage } from '@vueuse/core';
 import Editor from '~~/components/Editor.vue';
 import { ref } from 'vue';
-import { myFetch } from '~~/utils/utils';
 import Button from '~~/components/Button.vue';
 import Tester from '~~/components/Tester.vue';
 import CopyBtn from '~~/components/CopyBtn.vue';
 import TempMessengerList from '~~/components/TempMessengerList.vue';
+import Panel from '~~/components/Panel.vue'
 
 const tempMessengerId = ref()
 const messengerCode = useLocalStorage('messengerCode', '')
-const tempMessengerList = ref()
 const tempMessengerHref = useMessengerHref(tempMessengerId)
 const drawerVisible = ref(false)
-
-async function saveTempMessenger() {
-  const { id } = await myFetch(`/api/save-temp-messenger`, {
+const saveTempMessengerState = useAsync(async () => {
+  const { id } = await $fetch(`/api/save-temp-messenger`, {
     method: 'POST',
     body: {
       id: tempMessengerId.value,
@@ -25,8 +23,8 @@ async function saveTempMessenger() {
   })
   tempMessengerId.value = id
   ElMessage.success('Temporary messenger saved!')
-  tempMessengerList.value.reload()
-}
+}, null, { immediate: false })
+
 function editMessenger(messenger: Messenger) {
   messengerCode.value = messenger.raw
   tempMessengerId.value = messenger.id
@@ -39,20 +37,18 @@ function editMessenger(messenger: Messenger) {
   <section space-y-50>
     <!-- edidor -->
     <section ref="editorContent" border rounded-4>
-      <div border-b p-10 grid="~ cols-[1fr_1fr_1fr]" items-center>
+      <div border-b p-10 flex items-center>
         <div text="bold 20" justify-self-start>
           Editor <span text-gray>(JS/TS)</span>
         </div>
-        <div flex items-center>
+        <div flex items-center ml-30 mr-auto>
           {{tempMessengerHref}}
           <CopyBtn v-if="tempMessengerHref" :modelValue="tempMessengerHref" tip="Copy href" />
         </div>
-        <div text-right>
-          <Button type="primary" plain :onClick="saveTempMessenger">
-            {{tempMessengerId ? 'Update' : 'Save'}}
-          </Button>
-          <ElButton @click="drawerVisible = !drawerVisible">All temporary messengers</ElButton>
-        </div>
+        <Button type="primary" plain :onClick="saveTempMessengerState.execute">
+          {{tempMessengerId ? 'Update' : 'Save'}}
+        </Button>
+        <ElButton @click="drawerVisible = !drawerVisible">All temporary messengers</ElButton>
       </div>
       <Editor
         v-model="messengerCode"
@@ -64,10 +60,8 @@ function editMessenger(messenger: Messenger) {
 
     <Tester :raw="messengerCode" />
 
-    <ClientOnly>
-      <ElDrawer v-model="drawerVisible" size="820px" :withHeader="false">
-        <TempMessengerList ref="tempMessengerList" @edit="editMessenger" />
-      </ElDrawer>
-    </ClientOnly>
+    <Panel v-model="drawerVisible" title="Messengers for test only (!!LOST when server restarted)">
+      <TempMessengerList @edit="editMessenger" />
+    </Panel>
   </section>
 </template>

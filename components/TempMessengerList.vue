@@ -9,37 +9,29 @@ defineExpose({
 const emits = defineEmits<{
   (e: 'edit', v: Messenger): void
 }>()
-
+const fetcher = () => $fetch('/api/get-temp-messengers')
 const messengerList = ref()
-
-async function deleteTempMessenger(messenger: Messenger) {
-  await myFetch(`/api/delete-temp-messenger`, {
+const deleteState = useAsync(async (messenger: Messenger) => {
+  await $fetch(`/api/delete-temp-messenger`, {
     method: 'DELETE',
     body: messenger
   })
   ElMessage.success('Temporary messenger deleted!')
-  messengerList.value.reload()
-}
+  messengerList.value.reload() 
+}, null, { immediate: false })
 </script>
 
 <template>
-  <section border rounded-4>
-    <h2 border-b p-10 text="bold 20 rose" flex justify-between> 
-      Messengers for test only (Got lost when server restarted)
-    </h2>
-    <MessengerList ref="messengerList" :fetcher="() => myFetch('/api/get-temp-messengers')">
-      <ElTableColumn width="100">
-        <template #default="scope">
-          <div text-right whitespace-nowrap>
-            <ElLink @click="emits('edit', scope.row)" type="primary">Edit</ElLink>
-            <PopConfirm
-              :on-confirm="() => deleteTempMessenger(scope.row)"
-              :title="`Delete '${scope.row.id}' ?`">
-              <ElLink type="danger" ml-10>Delete</ElLink>
-            </PopConfirm>
-          </div>
-        </template>
-      </ElTableColumn>
-    </MessengerList>
-  </section>
+  <MessengerList ref="messengerList" :fetcher="fetcher">
+    <ElTableColumn width="100" #default="{row}: {row: Messenger}">
+      <div text-right whitespace-nowrap>
+        <ElLink @click="emits('edit', row)" type="primary">Edit</ElLink>
+        <PopConfirm
+          :on-confirm="() => deleteState.execute(row)"
+          :title="`Delete '${row.id}' ?`">
+          <ElLink type="danger" ml-10>Delete</ElLink>
+        </PopConfirm>
+      </div>
+    </ElTableColumn>
+  </MessengerList>
 </template>

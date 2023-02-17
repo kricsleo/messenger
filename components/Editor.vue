@@ -34,7 +34,7 @@ const extentions = [
       v-if="copyable" 
       :modelValue="props.modelValue"
       tip="Copy code"
-      class="absolute top-10 right-10 opacity-40 hover:opacity-100 text-20" />
+      class="absolute top-10 right-10 text-20" />
   </div>
 </template>
 
