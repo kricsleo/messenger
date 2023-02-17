@@ -1,4 +1,4 @@
-import { createMessengerId } from '~~/server/db'
+import { createMessengerId } from '~~/server/db/messengerDB'
 import { defineAnswer } from '../utils/utils'
 
 export default defineAnswer(async event => {

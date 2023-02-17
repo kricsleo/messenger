@@ -1,4 +1,4 @@
-import { messengerCache } from '~~/server/db'
+import { messengerCache } from '~~/server/db/messengerDB'
 import { createServerError, defineAnswer } from '../utils/utils'
 import { omit } from 'lodash-es'
 

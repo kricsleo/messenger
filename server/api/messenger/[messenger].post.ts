@@ -1,4 +1,4 @@
-import { getActiveMessenger } from '~~/server/db'
+import { getActiveMessenger } from '~~/server/db/messengerDB'
 import { createServerError, defineAnswer, deliverMessage, RateControl, validateTarget } from '~~/server/utils/utils'
 
 /** 

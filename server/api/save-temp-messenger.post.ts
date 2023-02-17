@@ -1,4 +1,4 @@
-import { createMessengerId, messengerCache } from '~~/server/db'
+import { createMessengerId, messengerCache } from '~~/server/db/messengerDB'
 import { createServerError, defineAnswer, rawMessenger2Runtime } from '../utils/utils';
 
 /** save an online messenger temporarily for test */

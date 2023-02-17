@@ -1,4 +1,4 @@
-import { rawMessenger2Runtime, myNanoid } from './utils/utils'
+import { rawMessenger2Runtime, myNanoid } from '../../utils/utils'
 
 class MemoryCache<T> {
   private cache: Map<string, T>

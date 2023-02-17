@@ -3,8 +3,8 @@ import ts from 'typescript'
 import vm from 'vm'
 import { customAlphabet } from 'nanoid'
 import { format as formatTime } from 'date-fns'
- 
-export function defineAnswer(fn: (event: H3Event) => any) {
+
+export function defineAnswer<T>(fn: (event: H3Event) => T) {
   return defineEventHandler(async (event: H3Event) => {
     try {
       const result = await fn(event);
@@ -47,7 +47,7 @@ export async function string2Runtime(str: string) {
     await vmModule.evaluate()
     return vmModule.namespace
   } else {
-    debug.warn(`"--experimental-vm-modules" is not enabled, fallback to unsafe "import" to compile module`)
+    debug.warn(`"--experimental-vm-modules" is not enabled, fallback to "import" to compile module`)
     const module = await import(`data:text/javascript;base64,${Buffer.from(str).toString('base64')}`)
     return module
   }
@@ -130,7 +130,7 @@ export function isValidHref(href: string) {
   return urlPattern.test(href)
 }
 
-export const myNanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 4)
+export const uuid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 6)
 
 export class RateControl {
   rate: number
@@ -166,4 +166,29 @@ export function createServerError(message: string, httpCode: number = 400) {
     statusMessage: message,
     message,
   })
+}
+
+/** cache with memory */
+export class MemoryCache<T> {
+  private cache: Map<string, T>
+  constructor() {
+    this.cache = new Map()
+  }
+  get(id: string) {
+    return this.cache.get(id) ?? null
+  }
+  set(id: string, value: T) {
+    return this.cache.set(id, value)
+  }
+  remove(id: string) {
+    return this.cache.delete(id)
+  }
+  getAll() {
+    return [...this.cache.values()]
+  }
+}
+
+/** roughly calculate string size in memory */
+export function roughMemorySizeOfString(str: string) {
+  return str.length * 2;
 }
