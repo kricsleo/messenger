@@ -3,7 +3,10 @@ import '@unocss/reset/tailwind.css'
 import 'uno.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import Header from './components/Header.vue';
+import { ElLoading } from 'element-plus';
 
+const app = useNuxtApp()
+app.vueApp.use(ElLoading)
 </script>
 
 <template>
@@ -20,6 +23,7 @@ import Header from './components/Header.vue';
 </template>
 
 <style>
+/** todo: move these styles to a single css file */
 ::-webkit-scrollbar {
   width: 1.1rem;
   height: 1.1rem;

@@ -1,4 +1,5 @@
 import { ElMessage } from 'element-plus'
+import { H3Error } from 'h3';
 import { reactive, ref, shallowRef } from '~~/.nuxt/imports';
 
 /**
@@ -13,11 +14,12 @@ import { reactive, ref, shallowRef } from '~~/.nuxt/imports';
   /** @default true */
   immediate?: boolean;
 }
-interface UseAsyncReturn<Data, MaybeUndef = false> {
+export interface UseAsyncReturn<Data, MaybeUndef> {
   data: MaybeUndef extends false ? Data : Data | undefined
   ready: boolean
   loading: boolean
   error: undefined | Error
+  executeCount: number
   execute: (...args: any) => Promise<Data>
 }
 export function useAsync<Data>(
@@ -27,7 +29,7 @@ export function useAsync<Data>(
   fn: (...args: any) => Promise<Data> | Data,
   initialData: Data,
   options?: UseAsyncOptions
-): UseAsyncReturn<Data>
+): UseAsyncReturn<Data, false>
 export function useAsync<Data>(
   fn: (...args: any) => Promise<Data> | Data,
   initialData?: Data,

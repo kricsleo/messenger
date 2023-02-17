@@ -23,6 +23,7 @@ export default defineConfig({
     ['x-center', 'flex justify-center'],
     ['x-between', 'flex justify-between'],
     ['y-center', 'flex items-center'],
+    [/^expand-click-?(.*)$/, ([,size]) => `cursor-pointer relative before:content-[""] before:absolute before:inset--${size || 10}`],
   ],
   rules: [
     ['normalize-scroll', {'padding-left': 'calc(100vw - 100%)'}]
