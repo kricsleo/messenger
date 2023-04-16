@@ -2,6 +2,7 @@
   "name": "messenger",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "pnpm@6.3.2",
   "scripts": {
     "build": "nuxt build",
     "dev": "NODE_OPTIONS='--experimental-vm-modules' nuxt dev",
