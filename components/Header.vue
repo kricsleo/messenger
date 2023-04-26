@@ -10,6 +10,7 @@ import MenuLink from './MenuLink.vue';
       <!-- <h1 ml-12 text-20 mr-auto>Messenger</h1> -->
       <MenuLink to="/" ml-auto>Messengers</MenuLink>
       <MenuLink to="/playground">Playground</MenuLink>
+      <MenuLink to="/about">About</MenuLink>
       <a i-carbon:logo-github href="https://github.com/kricsleo/messenger" target="_blank" />
       <button @click="toggleDark()" dark:i-carbon-moon i-carbon-sun />
     </div>
