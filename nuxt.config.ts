@@ -13,7 +13,7 @@ export default defineNuxtConfig({
         { charset: "utf-8" }
       ],
       link: [
-        { rel: 'icon', href: '/favicon.svg' }
+        { rel: 'icon', href: '/favicon.png' }
       ],
     }
   },
@@ -22,7 +22,6 @@ export default defineNuxtConfig({
   },
   modules: [
     '@unocss/nuxt',
-    '@nuxt/content',
     'unplugin-markdown-2-html/nuxt'
   ],
   vite: {
