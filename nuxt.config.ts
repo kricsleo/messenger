@@ -22,7 +22,8 @@ export default defineNuxtConfig({
   },
   modules: [
     '@unocss/nuxt',
-    '@nuxt/content'
+    '@nuxt/content',
+    'unplugin-markdown-2-html/nuxt'
   ],
   vite: {
     plugins: [
