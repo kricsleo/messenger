@@ -8,7 +8,7 @@ import Tester from '~~/components/Tester.vue';
 import CopyBtn from '~~/components/CopyBtn.vue';
 import TempMessengerList from '~~/components/TempMessengerList.vue';
 import Panel from '~~/components/Panel.vue'
-import EditorMonaco from '~~/components/EditorMonaco.vue';
+import EditorMonaco from '~~/components/Editor/EditorMonaco.vue';
 
 const tempMessengerId = ref()
 const messengerCode = useLocalStorage('messengerCode', '')

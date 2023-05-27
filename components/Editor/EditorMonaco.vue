@@ -14,7 +14,7 @@ import { wireTmGrammars } from 'monaco-editor-textmate'
 
 const props = defineProps<{
   language: 'json' | 'typescript'
-  modelValue: string
+  modelValue: string | undefined
 }>()
 const emits = defineEmits<{
   (e: 'update:modelValue', v: string): void
@@ -58,10 +58,11 @@ onMounted(async () => {
     language: props.language, // this won't work out of the box, see below for more info,
     theme: 'vs-code-theme-converted', // very important, see comment above
     // definitionLinkOpensInPeek: true,
+    minimap: { enabled: false },
     lineDecorationsWidth: 0,
     lineNumbersMinChars: 4,
+    fontSize: 14,
     tabSize: 2,
-    minimap: { enabled: false },
   })
 
   monaco.languages.typescript.typescriptDefaults.setExtraLibs([{
