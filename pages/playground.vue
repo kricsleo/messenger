@@ -10,7 +10,15 @@ import Panel from '~~/components/Panel.vue'
 import EditorMonaco from '~~/components/Editor/EditorMonaco.vue';
 
 const tempMessengerId = ref()
-const messengerCode = useLocalStorage('messengerCode', '')
+const messengerCode = useLocalStorage('messengerCode',
+`
+export function (body, query) {
+  return {
+    text: 'Hi'
+  }
+}
+`.trim()
+)
 const tempMessengerHref = useMessengerHref(tempMessengerId)
 const drawerVisible = ref(false)
 const saveTempMessengerState = useAsync(async () => {
