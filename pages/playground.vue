@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ElButton, ElMessage } from 'element-plus'
 import { useLocalStorage } from '@vueuse/core';
-import Editor from '~~/components/Editor.vue';
 import { ref } from 'vue';
 import Button from '~~/components/Button.vue';
 import Tester from '~~/components/Tester.vue';
