@@ -17,7 +17,6 @@ const editorRef = ref<HTMLDivElement>()
 onMounted(async () => {
   self.MonacoEnvironment = {
     getWorker(_, label) {
-      console.log('label', label)
       if(label === 'json') {
         return new jsonworker()
       }
@@ -30,12 +29,12 @@ onMounted(async () => {
 
   await loadWASM('https://cdn.jsdelivr.net/npm/onigasm@2.2.5/lib/onigasm.wasm') // See https://www.npmjs.com/package/onigasm#light-it-up
     const registry = new Registry({
-        getGrammarDefinition: async (scopeName) => {
-            return {
-                format: 'json',
-                content: await (await fetch(`https://cdn.jsdelivr.net/npm/shiki@0.14.2/languages/typescript.tmLanguage.json`)).text()
-            }
+      getGrammarDefinition: async (scopeName) => {
+        return {
+          format: 'json',
+          content: await (await fetch(`https://cdn.jsdelivr.net/npm/shiki@0.14.2/languages/typescript.tmLanguage.json`)).text()
         }
+      }
     })
 
     // map of monaco "language id's" to TextMate scopeNames
@@ -44,7 +43,7 @@ onMounted(async () => {
 
     // monaco's built-in themes aren't powereful enough to handle TM tokens
     // https://github.com/Nishkalkashyap/monaco-vscode-textmate-theme-converter#monaco-vscode-textmate-theme-converter
-    monaco.editor.defineTheme('vs-code-theme-converted', themeMonoco);
+    monaco.editor.defineTheme('vs-code-theme-converted', themeMonoco as any);
 
     var editor = monaco.editor.create(editorRef.value!, {
         value: `
@@ -66,10 +65,9 @@ onMounted(async () => {
     })
 
     monaco.languages.typescript.typescriptDefaults.setExtraLibs([{
-        content: `declare interface Meta { author: string }`,
-        filePath: 'types.d.ts'
+      content: `declare interface Meta { author: string }`,
+      filePath: 'types.d.ts'
     }])
-    
     await wireTmGrammars(monaco, registry, grammars, editor)
 })
 </script>
