@@ -3,6 +3,7 @@ import { useLocalStorage } from '@vueuse/core';
 import { ElInput, ElMessage } from 'element-plus';
 import Button from './Button.vue';
 import Editor from './Editor.vue';
+import EditorMonaco from '~~/components/Editor/EditorMonaco.vue';
 
 const props = defineProps<{
   raw: string
@@ -47,12 +48,7 @@ const testState = useAsync(async () => {
           Test Data
           <span class="text-gray">(JSON format): </span>
         </div>
-        <Editor 
-          v-model="testData"
-          placeholder="Mock json data goes here..."
-          :style="{height: '400px'}"
-          border-r
-        />
+        <EditorMonaco language="json" v-model="testData" border-r />
       </div>
       <div overflow-auto>
         <div pb-20> Reply: </div>

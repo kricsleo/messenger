@@ -60,12 +60,6 @@ function editMessenger(messenger: Messenger) {
       </div>
 
       <EditorMonaco language="typescript" v-model="messengerCode" />
-      <!-- <Editor
-        v-model="messengerCode"
-        autofocus
-        placeholder="messenger code goes here..."
-        :style="{height: '650px'}"
-        text-16 /> -->
     </section>
 
     <Tester :raw="messengerCode" />
