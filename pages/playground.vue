@@ -8,6 +8,7 @@ import Tester from '~~/components/Tester.vue';
 import CopyBtn from '~~/components/CopyBtn.vue';
 import TempMessengerList from '~~/components/TempMessengerList.vue';
 import Panel from '~~/components/Panel.vue'
+import EditorMonaco from '~~/components/EditorMonaco.vue';
 
 const tempMessengerId = ref()
 const messengerCode = useLocalStorage('messengerCode', '')
@@ -35,6 +36,7 @@ function editMessenger(messenger: Messenger) {
 
 <template>
   <section space-y-50>
+    <EditorMonaco />
     <!-- edidor -->
     <section ref="editorContent" border rounded-4>
       <div border-b p-10 flex items-center>
