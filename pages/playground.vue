@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ElButton, ElMessage } from 'element-plus'
 import { useLocalStorage } from '@vueuse/core';
-import Editor from '~~/components/Editor.vue';
 import { ref } from 'vue';
 import Button from '~~/components/Button.vue';
 import Tester from '~~/components/Tester.vue';
 import CopyBtn from '~~/components/CopyBtn.vue';
 import TempMessengerList from '~~/components/TempMessengerList.vue';
 import Panel from '~~/components/Panel.vue'
+import EditorMonaco from '~~/components/Editor/EditorMonaco.vue';
 
 const tempMessengerId = ref()
 const messengerCode = useLocalStorage('messengerCode', '')
@@ -50,12 +50,14 @@ function editMessenger(messenger: Messenger) {
         </Button>
         <ElButton @click="drawerVisible = !drawerVisible">All temporary messengers</ElButton>
       </div>
-      <Editor
+
+      <EditorMonaco language="typescript" v-model="messengerCode" />
+      <!-- <Editor
         v-model="messengerCode"
         autofocus
         placeholder="messenger code goes here..."
         :style="{height: '650px'}"
-        text-16 />
+        text-16 /> -->
     </section>
 
     <Tester :raw="messengerCode" />
