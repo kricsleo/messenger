@@ -12,6 +12,14 @@ import { loadWASM } from 'onigasm' // peer dependency of 'monaco-textmate'
 import { Registry } from 'monaco-textmate' // peer dependency
 import { wireTmGrammars } from 'monaco-editor-textmate'
 
+const props = defineProps<{
+  language: 'json' | 'typescript'
+  modelValue: string
+}>()
+const emits = defineEmits<{
+  (e: 'update:modelValue', v: string): void
+}>()
+
 const editorRef = ref<HTMLDivElement>()
 
 onMounted(async () => {
@@ -28,47 +36,44 @@ onMounted(async () => {
   }
 
   await loadWASM('https://cdn.jsdelivr.net/npm/onigasm@2.2.5/lib/onigasm.wasm') // See https://www.npmjs.com/package/onigasm#light-it-up
-    const registry = new Registry({
-      getGrammarDefinition: async (scopeName) => {
-        return {
-          format: 'json',
-          content: await (await fetch(`https://cdn.jsdelivr.net/npm/shiki@0.14.2/languages/typescript.tmLanguage.json`)).text()
-        }
+  const registry = new Registry({
+    getGrammarDefinition: async (scopeName) => {
+      return {
+        format: 'json',
+        content: await (await fetch(`https://cdn.jsdelivr.net/npm/shiki@0.14.2/languages/typescript.tmLanguage.json`)).text()
       }
-    })
+    }
+  })
 
-    // map of monaco "language id's" to TextMate scopeNames
-    const grammars = new Map()
-    grammars.set('typescript', 'source.ts')
+  // map of monaco "language id's" to TextMate scopeNames
+  const grammars = new Map()
+  grammars.set('typescript', 'source.ts')
 
-    // monaco's built-in themes aren't powereful enough to handle TM tokens
-    // https://github.com/Nishkalkashyap/monaco-vscode-textmate-theme-converter#monaco-vscode-textmate-theme-converter
-    monaco.editor.defineTheme('vs-code-theme-converted', themeMonoco as any);
+  // monaco's built-in themes aren't powereful enough to handle TM tokens
+  // https://github.com/Nishkalkashyap/monaco-vscode-textmate-theme-converter#monaco-vscode-textmate-theme-converter
+  monaco.editor.defineTheme('vs-code-theme-converted', themeMonoco as any);
 
-    var editor = monaco.editor.create(editorRef.value!, {
-        value: `
-        const a: Meta = 'foo'
+  const editor = monaco.editor.create(editorRef.value!, {
+    value: props.modelValue,
+    language: props.language, // this won't work out of the box, see below for more info,
+    theme: 'vs-code-theme-converted', // very important, see comment above
+    // definitionLinkOpensInPeek: true,
+    lineDecorationsWidth: 0,
+    lineNumbersMinChars: 4,
+    tabSize: 2,
+    minimap: { enabled: false },
+  })
 
-        hello()
-
-        function hello() {
-          
-        }
-        `,
-        language: 'typescript', // this won't work out of the box, see below for more info,
-        theme: 'vs-code-theme-converted', // very important, see comment above
-        // definitionLinkOpensInPeek: true,
-        lineDecorationsWidth: 0,
-        lineNumbersMinChars: 4,
-        tabSize: 2,
-        minimap: { enabled: false },
-    })
-
-    monaco.languages.typescript.typescriptDefaults.setExtraLibs([{
-      content: `declare interface Meta { author: string }`,
-      filePath: 'types.d.ts'
-    }])
-    await wireTmGrammars(monaco, registry, grammars, editor)
+  monaco.languages.typescript.typescriptDefaults.setExtraLibs([{
+    content: `declare interface Meta { author: string }`,
+    filePath: 'types.d.ts'
+  }])
+  await wireTmGrammars(monaco, registry, grammars, editor)
+  
+  editor.onDidChangeModelContent(() => {
+    const value = editor.getValue()
+    emits('update:modelValue', value)
+  })
 })
 </script>
 

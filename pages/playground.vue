@@ -36,7 +36,6 @@ function editMessenger(messenger: Messenger) {
 
 <template>
   <section space-y-50>
-    <EditorMonaco />
     <!-- edidor -->
     <section ref="editorContent" border rounded-4>
       <div border-b p-10 flex items-center>
@@ -52,12 +51,14 @@ function editMessenger(messenger: Messenger) {
         </Button>
         <ElButton @click="drawerVisible = !drawerVisible">All temporary messengers</ElButton>
       </div>
-      <Editor
+
+      <EditorMonaco language="typescript" v-model="messengerCode" />
+      <!-- <Editor
         v-model="messengerCode"
         autofocus
         placeholder="messenger code goes here..."
         :style="{height: '650px'}"
-        text-16 />
+        text-16 /> -->
     </section>
 
     <Tester :raw="messengerCode" />
