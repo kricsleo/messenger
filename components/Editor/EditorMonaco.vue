@@ -1,116 +1,70 @@
 <script setup lang="ts">
-import 'monaco-editor/esm/vs/editor/editor.all.js';
-import 'monaco-editor/esm/vs/language/typescript/monaco.contribution';
-import 'monaco-editor/esm/vs/language/json/monaco.contribution';
-import 'monaco-editor/esm/vs/basic-languages/monaco.contribution';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import jsonworker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import themeMonoco from './theme-monaco.json'
-import { loadWASM } from 'onigasm' // peer dependency of 'monaco-textmate'
-import { Registry } from 'monaco-textmate' // peer dependency
-import { wireTmGrammars } from 'monaco-editor-textmate'
+import { editor as Editor } from 'monaco-editor/esm/vs/editor/editor.api'
+import { createConfiguredEditor } from 'vscode/monaco'
+import CopyBtn from '~~/components/CopyBtn.vue';
 
-const props = defineProps<{
-  language: 'json' | 'typescript'
-  modelValue: string | undefined
-}>()
+const props = withDefaults(defineProps<{
+  language?: 'json' | 'typescript'
+  modelValue?: string
+  readonly?: boolean
+  copyable?: boolean
+}>(), { 
+  language: 'typescript',
+  modelValue: ''
+})
+const attrs = useAttrs()
 const emits = defineEmits<{
   (e: 'update:modelValue', v: string): void
 }>()
-
 const editorRef = ref<HTMLDivElement>()
+const copyBtnRef = ref<HTMLDivElement>()
 
 onMounted(async () => {
-  self.MonacoEnvironment = {
-    getWorker(_, label) {
-      if(label === 'json') {
-        return new jsonworker()
-      }
-      if(label === 'typescript') {
-        return new tsWorker()
-      }
-      return new editorWorker()
-    }
-  }
-
-  await loadWASM('https://cdn.jsdelivr.net/npm/onigasm@2.2.5/lib/onigasm.wasm') // See https://www.npmjs.com/package/onigasm#light-it-up
-  const registry = new Registry({
-    getGrammarDefinition: async (scopeName) => {
-      return {
-        format: 'json',
-        content: await (await fetch(`https://cdn.jsdelivr.net/npm/shiki@0.14.2/languages/typescript.tmLanguage.json`)).text()
-      }
-    }
-  })
-
-  // map of monaco "language id's" to TextMate scopeNames
-  const grammars = new Map()
-  grammars.set('typescript', 'source.ts')
-
-  // monaco's built-in themes aren't powereful enough to handle TM tokens
-  // https://github.com/Nishkalkashyap/monaco-vscode-textmate-theme-converter#monaco-vscode-textmate-theme-converter
-  monaco.editor.defineTheme('vs-code-theme-converted', themeMonoco as any);
-
-  const editor = monaco.editor.create(editorRef.value!, {
+  // Nuxt generates a global process variable, 
+  // which conflicts with the judgement inside textmate.
+  // Fix: https://github.com/microsoft/vscode-textmate/blob/b6bbee8d53c029d9279a0c9a998b78f05247d6d1/src/debug.ts#L6
+  typeof process === 'object' && (process.env = process.env || {})
+  await import('./setupMonaco')
+  const editor = createConfiguredEditor(editorRef.value!, {
     value: props.modelValue,
-    language: props.language, // this won't work out of the box, see below for more info,
-    theme: 'vs-code-theme-converted', // very important, see comment above
-    // definitionLinkOpensInPeek: true,
-    minimap: { enabled: false },
+    language: props.language,
+    readOnly: props.readonly,
+    automaticLayout: true,
+    fontSize: 14,
     lineDecorationsWidth: 0,
     lineNumbersMinChars: 4,
-    fontSize: 14,
+    glyphMargin: false,
     tabSize: 2,
   })
-
-  monaco.languages.typescript.typescriptDefaults.setExtraLibs([{
-    content: `declare interface Meta { author: string }`,
-    filePath: 'types.d.ts'
-  }])
-
-  async function promiseRetry<T>(
-  promise: () => Promise<T>,
-  initial_retry_count: number,
-  retry_delay: number,
-): Promise<T> {
-  async function __promiseRetry(promise: () => Promise<T>, remaining_retry_count: number): Promise<T> {
-    try {
-      const res = await promise();
-      return res;
-    } catch (e) {
-      if (remaining_retry_count <= 0) {
-        throw e;
-      }
-      setTimeout(() => {
-        __promiseRetry(promise, remaining_retry_count - 1);
-      }, retry_delay ** (1 + 0.1 * (initial_retry_count - remaining_retry_count + 1)));
+  if(props.copyable) {
+    const copyWidget: Editor.IOverlayWidget = {
+      getId: () => 'monaco-copy-widget',
+      getDomNode: () => copyBtnRef.value!,
+      getPosition: () => ({preference: 0})
     }
+    editor.addOverlayWidget(copyWidget);
   }
-
-  return __promiseRetry(promise, initial_retry_count);
-}
-
-// default async load ts will override `wireTmGrammars`
-// so `wireTmGrammars` after default async load
-await promiseRetry(
-  async () => {
-    await monaco.languages.typescript.getTypeScriptWorker();
-  },
-  5,
-  10,
-);
-  await wireTmGrammars(monaco, registry, grammars, editor)
-  
-  // editor.onDidScrollChange()
   editor.onDidChangeModelContent(() => {
     const value = editor.getValue()
     emits('update:modelValue', value)
   })
+  watch(() => props.modelValue, () => {
+    if(props.modelValue !== editor.getValue()) {
+      editor.setValue(props.modelValue)
+    }
+  })
+  return () => editor.dispose()
+})
+
+watch(isDark, () => {
+  monaco.editor.setTheme(isDark.value ? 'dark' : 'light')
 })
 </script>
 
 <template>
-  <div ref="editorRef" class="h-700" />
+  <div ref="editorRef" v-bind="attrs" />
+  <div v-if="copyable" ref="copyBtnRef">
+    <CopyBtn :modelValue="props.modelValue" text-20 />
+  </div>
 </template>
