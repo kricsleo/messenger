@@ -32,8 +32,8 @@ dependencies:
     specifier: ^4.17.21
     version: 4.17.21
   monaco-editor:
-    specifier: ^0.38.0
-    version: 0.38.0
+    specifier: 0.37.1
+    version: 0.37.1
   nanoid:
     specifier: ^4.0.0
     version: 4.0.0
@@ -48,7 +48,7 @@ dependencies:
     version: 4.9.3
   vscode:
     specifier: npm:@codingame/monaco-vscode-api@1.78.0
-    version: /@codingame/monaco-vscode-api@1.78.0(monaco-editor@0.38.0)(vscode-oniguruma@1.7.0)(vscode-textmate@9.0.0)(yauzl@2.10.0)
+    version: /@codingame/monaco-vscode-api@1.78.0(monaco-editor@0.37.1)(vscode-oniguruma@1.7.0)(vscode-textmate@9.0.0)(yauzl@2.10.0)
   vscode-oniguruma:
     specifier: ~1.7.0
     version: 1.7.0
@@ -483,7 +483,7 @@ packages:
       w3c-keyname: 2.2.6
     dev: false
 
-  /@codingame/monaco-vscode-api@1.78.0(monaco-editor@0.38.0)(vscode-oniguruma@1.7.0)(vscode-textmate@9.0.0)(yauzl@2.10.0):
+  /@codingame/monaco-vscode-api@1.78.0(monaco-editor@0.37.1)(vscode-oniguruma@1.7.0)(vscode-textmate@9.0.0)(yauzl@2.10.0):
     resolution: {integrity: sha512-mV+ImrH1EdgwkujoYNCnqtZijZA7c1vxXl/Y6OwV1Mo8fZ4fUhMTiiO+0zaQZqLzM5GX/l7qfxNVOLV2pUJtmg==}
     peerDependencies:
       monaco-editor: ~0.37.1
@@ -492,7 +492,7 @@ packages:
       yauzl: ^2.10.0
     dependencies:
       '@types/node': 18.16.1
-      monaco-editor: 0.38.0
+      monaco-editor: 0.37.1
       vscode-oniguruma: 1.7.0
       vscode-textmate: 9.0.0
       yauzl: 2.10.0
@@ -4056,8 +4056,8 @@ packages:
       pkg-types: 1.0.2
       ufo: 1.1.1
 
-  /monaco-editor@0.38.0:
-    resolution: {integrity: sha512-11Fkh6yzEmwx7O0YoLxeae0qEGFwmyPRlVxpg7oF9czOOCB/iCjdJrG5I67da5WiXK3YJCxoz9TJFE8Tfq/v9A==}
+  /monaco-editor@0.37.1:
+    resolution: {integrity: sha512-jLXEEYSbqMkT/FuJLBZAVWGuhIb4JNwHE9kPTorAVmsdZ4UzHAfgWxLsVtD7pLRFaOwYPhNG9nUCpmFL1t/dIg==}
     dev: false
 
   /mri@1.2.0:

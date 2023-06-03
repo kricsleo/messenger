@@ -59,7 +59,7 @@ function editMessenger(messenger: Messenger) {
         <ElButton @click="drawerVisible = !drawerVisible">All temporary messengers</ElButton>
       </div>
 
-      <EditorMonaco language="typescript" v-model="messengerCode" />
+      <EditorMonaco language="typescript" v-model="messengerCode" h-650 />
     </section>
 
     <Tester :raw="messengerCode" />
