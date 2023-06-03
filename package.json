@@ -10,6 +10,7 @@
     "generate": "nuxt generate",
     "preview": "NODE_OPTIONS='--experimental-vm-modules' nuxt preview",
     "postinstall": "nuxt prepare",
+    "themes": "tsx ./scripts/pullThemes.ts",
     "test": "vitest -u"
   },
   "devDependencies": {
