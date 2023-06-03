@@ -48,7 +48,7 @@ const testState = useAsync(async () => {
           Test Data
           <span class="text-gray">(JSON format): </span>
         </div>
-        <EditorMonaco language="json" v-model="testData" border-r />
+        <EditorMonaco language="json" v-model="testData" border-r h-500 />
       </div>
       <div overflow-auto>
         <div pb-20> Reply: </div>
@@ -56,7 +56,7 @@ const testState = useAsync(async () => {
           :model-value="JSON.stringify(messageReply, null, 2)"
           placeholder="Test data replied"
           disabled
-          :style="{height: '400px'}"
+          :style="{height: '500px'}"
         />
       </div>
     </div>

@@ -5,10 +5,10 @@
   "packageManager": "pnpm@8.2.0",
   "scripts": {
     "build": "nuxt build",
-    "dev": "NODE_OPTIONS='--experimental-vm-modules' nuxt dev",
-    "start": "NODE_OPTIONS='--experimental-vm-modules' nuxt dev",
+    "dev": "NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 nuxt dev",
+    "start": "NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 nuxt dev",
     "generate": "nuxt generate",
-    "preview": "NODE_OPTIONS='--experimental-vm-modules' nuxt preview",
+    "preview": "NODE_OPTIONS='--experimental-vm-modules' NODE_NO_WARNINGS=1 nuxt preview",
     "postinstall": "nuxt prepare",
     "themes": "tsx ./scripts/pullThemes.ts",
     "test": "vitest -u"

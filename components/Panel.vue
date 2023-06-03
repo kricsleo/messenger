@@ -19,7 +19,7 @@ const emits = defineEmits<{
     appendToBody>
     <template #header>
       <div y-center gap-10>
-        <button @click="emits('update:modelValue', false)" expand-click>
+        <button expand-click @click="emits('update:modelValue', false)">
           <div i-carbon:arrow-left op-85 hover:op-100 />
         </button>
         <h4 v-if="title" text="bold 18">{{ title }}</h4>
